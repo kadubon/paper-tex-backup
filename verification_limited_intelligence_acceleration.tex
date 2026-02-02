@@ -1,0 +1,2710 @@
+% !TEX TS-program = pdflatex
+% -----------------------------------------------------------------------------
+% Compile: pdflatex verification_limited_intelligence_acceleration_v47.tex
+% -----------------------------------------------------------------------------
+\documentclass[11pt]{article}
+
+% --- Machine-readable PDF / font hygiene (pdfLaTeX) ---
+\usepackage{cmap}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\IfFileExists{glyphtounicode.tex}{\input{glyphtounicode.tex}}{}
+\pdfgentounicode=1
+\usepackage{microtype}
+
+\usepackage[margin=0.7in]{geometry}
+\setlength{\emergencystretch}{3em}
+\setlength{\parskip}{0.35em}
+\setlength{\parindent}{0em}
+\sloppy
+\usepackage{setspace}
+\setstretch{1.2}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{float}
+
+% --- Algorithms ---
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% --- Listings for schemas ---
+\usepackage{listings}
+\lstdefinelanguage{json}{
+  basicstyle=\ttfamily\small,
+  morestring=[b]",
+  showstringspaces=false,
+  alsoletter={0123456789.-_},
+  morekeywords={true,false,null}
+}
+\lstset{
+  basicstyle=\ttfamily\small,
+  columns=fullflexible,
+  breaklines=true,
+  frame=single,
+  rulecolor=\color{black},
+  xleftmargin=1em,
+  xrightmargin=1em
+}
+
+% --- Hyperref (pdfLaTeX metadata only via hyperref; no hyperxmp) ---
+\usepackage[pdfencoding=auto]{hyperref}
+\usepackage{xurl}
+\hypersetup{
+  pdftitle={Verification-Limited Intelligence Acceleration: Observable-Only Laws, Bounded Derivation, and Diagnostics under No-Meta Constraints},
+  pdfauthor={K. Takahashi},
+  pdfsubject={Observable-only, no-privileged-judge scaling law for verification-limited regimes; dependency-closed policy pinning; witness-cosigned dual-root log heads; index-membership uniqueness; close-pinned cutoffs with explicit leaf-index bounds; cutoff-parameterized roster/count workload sealing; deterministic derived transcripts with streaming size bounds and memory-safe fail-closed triggers; conservative charging with cap fallback; cap-schedule boundary checking via policy breakpoints; and conditional acceleration envelopes expressed only in mechanically checkable quantities},
+  pdfkeywords={verification-limited, observable-only, no-meta, theory-spec separation, transparency log, dual root, witness quorum, cutoff pinning, roster sealing, admission count, index membership, uniqueness, deterministic replay, escrow, conservative charging, cap fallback, streaming transcript bound, memory safety, gas boundedness, progress non-inflation, fail-closed},
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=black
+}
+\urlstyle{same}
+
+% --- Normative keywords (RFC style; see RFC 2119/8174) ---
+\newcommand{\MUST}{\textbf{MUST}}
+\newcommand{\MUSTNOT}{\textbf{MUST NOT}}
+\newcommand{\SHOULD}{\textbf{SHOULD}}
+\newcommand{\SHOULDNOT}{\textbf{SHOULD NOT}}
+\newcommand{\MAY}{\textbf{MAY}}
+
+% --- Convenience macros ---
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\term}[1]{\emph{#1}}
+
+% --- Common sets / operators ---
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\1}{\mathbf{1}}
+\providecommand{\E}{\mathbb{E}}
+
+% --- Hash / domain separation / prefix encoding ---
+\newcommand{\Hash}{\mathsf{H}}
+\newcommand{\DS}{\mathsf{DS}}
+\newcommand{\LP}{\mathsf{LP}}
+
+% --- Componentwise order notation ---
+\newcommand{\cwise}{\preceq_{\textsf{cw}}}
+
+% --- Theorem envs ---
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{remark}{Remark}
+\newtheorem{example}{Example}
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{proposition}{Proposition}
+
+% --- Compact lists ---
+\newlist{tightitemize}{itemize}{2}
+\setlist[tightitemize]{label=\textbullet,leftmargin=1.2em,itemsep=0.2em,topsep=0.2em}
+\newenvironment{tightenum}{\begin{enumerate}\setlength\itemsep{0.2em}}{\end{enumerate}}
+
+% -----------------------------------------------------------------------------
+\title{\textbf{Verification-Limited Intelligence Acceleration:}\\
+Observable-Only Laws, Bounded Derivation, and Diagnostics under No-Meta Constraints}
+\author{K. Takahashi\\\small\href{https://orcid.org/0009-0004-4273-3365}{ORCID 0009-0004-4273-3365}}
+\date{\vspace{-0.8em}}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This paper formalizes a scaling regime where \term{verification} is the binding constraint: candidate proposals proliferate faster than they can be certified using \term{observable-only} evidence in \term{no privileged judge} settings. We present (A) a \emph{principle-level} theory and (B) a \emph{reference mechanism sketch}, and we make the boundary explicit.
+
+\textbf{Theory/principle layer.} We define an \term{observable-only} decision discipline, a \term{close-pinned cutoff} semantics, and a \term{strict-only} progress credit rule. We prove an observable-only law of \term{no progress inflation under adversarial missingness}: weakening the observation surface cannot increase strictly credited progress because strict credit requires mechanically checkable completeness (certified cutoffs, pinned policy, index-unique receipts, cutoff-parameterized workload sealing, bounded proofs, bounded replay, non-circular closure hashing), and all uncertain components map to conservative canonical forms.
+
+\textbf{Reference mechanism layer (one instantiation).} We give a replay-auditable construction built from: (i) \term{dependency-closed} policy pinning, (ii) witness-cosigned \term{dual-root} transparency-log heads committing to both an append-only list root and a \term{key-index root} enabling mechanically checkable \term{uniqueness} by index-membership proofs, (iii) workload sealing via a log-committed roster plus an index-certified admission count \emph{parameterized by the same cutoff bound}, (iv) escrow reservation with replay-validated metered charging and \term{cap fallback} when receipts/proofs/dependencies are missing/invalid/non-unique, and (v) a deterministic derived transcript with streaming size bounds and memory-safe fail-closed triggers.
+
+Finally, we state conditional acceleration envelopes over spans of windows where observable premises hold (budget stability, utilization and strict-fraction lower bounds, and an empirically testable power-law upper bound on charged verification cost per admitted attempt as a function of cumulative committed strict progress). All premises and conclusions are expressed in locally observable, mechanically checkable quantities (certificates, inclusion/consistency proofs, index-membership proofs, receipts, caps, anchors, derivation rules, and bounded execution), without appeal to hidden ground truth.
+Interpreting these envelopes as intelligence/capability acceleration additionally requires an epoch-defined semantic link between evidence and performance (semantic adequacy); otherwise the progress variable is only a strictly auditable counter.
+All conclusions are conservative: under adversarial participation, missingness, or underspecified rules, the verifier is permitted to output \texttt{NONSTRICT} or \texttt{UNDEFINED}. Accordingly, the ``acceleration envelopes'' are conditional diagnostics that apply only to windows that pass the strict diagnostic gate; they do not claim that such windows must exist or persist in any external environment.
+\end{abstract}
+
+\section{Scope, layering, and conformance (theory vs. specification)}
+
+Modern collective intelligence systems (human, model, or hybrid) can generate candidate claims faster than they can verify them. With trusted labels or privileged adjudicators, verification can be delegated. In \term{observable-only, no-meta} settings, no privileged evaluator exists: any acceptance, credited progress, or authority-plane effect \MUST{} be justified by explicit artifacts that are locally checkable and replay-auditable.
+
+This manuscript has two layers:
+
+\paragraph{Layer I: principle/theory (normative semantics).}
+This layer defines the \emph{meaning} of terms such as ``observable-only admissibility,'' ``certified cutoff,'' ``strict completeness,'' ``strict-only progress credit,'' and ``no inflation under weakening.'' Theorem statements apply to \emph{any} system satisfying the stated axioms/assumptions, regardless of engineering choices.
+
+\paragraph{Layer II: reference mechanism (one realizable instantiation).}
+This layer provides a concrete, implementable set of artifact types (receipts, proofs, heads, indices) and one deterministic derivation procedure that \emph{implements} Layer~I semantics. This is not the only way to realize the semantics; it is a minimal, witness-friendly instantiation designed to be mechanically checkable.
+
+\paragraph{Normativity rule.}
+Statements explicitly labeled ``(normative)'' or using RFC-style keywords \MUST/\SHOULD/\MAY define \emph{required observable semantics} for conformance. ``Schemas (illustrative)'' are non-binding unless an epoch policy pins them.
+
+\paragraph{Conformance claim (what it means to implement this paper).}
+An implementation conforms if, for each epoch it claims to support:
+\begin{tightitemize}
+\item it enforces the Layer~I semantics (definitions of strictness, completeness, credit, and diagnostics) using only its observation surface and pinned policy identifiers, and
+\item it provides a deterministic procedure that outputs the same derived transcript object as required by those semantics (up to epoch-pinned serialization), with fail-closed behavior on any bound/verification failure.
+\end{tightitemize}
+
+\paragraph{Relation to a broader no-meta program.}
+This paper isolates the \emph{verification-limited} scaling law and its anti-missingness accounting discipline as a reusable module that can be embedded into broader no-meta autonomy stacks (e.g., containment, contracts, floors, backcasting meta-layers) \cite{TakahashiAPWJ2026,TakahashiONCAP2026,TakahashiContracts2026,TakahashiFloors2026,TakahashiPOBML2026}. The present manuscript is self-contained: it relies only on observable artifacts, deterministic replay, and pinned policies.
+
+\paragraph{Design target (observable-only).}
+All definitions and guarantees depend only on:
+\begin{tightitemize}
+\item an agent-local observation surface and a \emph{close-pinned} cutoff (a head commit plus a leaf-index bound),
+\item dependency-closed epoch-pinned rules for verification, replay, accounting, transcript derivation, and estimators,
+\item inclusion/consistency proofs for list roots and \emph{index-membership proofs} for uniqueness by binding key,
+\item a \emph{sealed workload descriptor}: a roster receipt plus an index-certified admission count, both parameterized by the same cutoff,
+\item explicit budgets justified by observable escrow/funding receipts, plus escrow reservation and metered-or-cap charging,
+\item deterministic transcript derivation that makes missingness non-profitable for credited progress,
+\item enforceable \emph{time/memory} bounds: streaming transcript sizing, bounded parsing, and a pinned gas/complexity profile for window derivation.
+\end{tightitemize}
+
+\paragraph{Threat model (minimal, adversarial missingness).}
+Adversaries may: (i) submit malformed or strategically incomplete artifacts, (ii) withhold dependencies or proofs, (iii) attempt DoS via expensive parsing/verification, (iv) attempt split-view by selectively revealing subsets (which may persist as an availability failure until gossip), (v) attempt equivocation via competing log heads. We do \emph{not} assume honest ground-truth labels. \term{No-meta} here means there is no hidden evaluator in the verification pipeline; epoch policy selection/pinning is an explicit, observable boundary condition and may be governed externally. We assume only that verification is bounded and deterministic under epoch rules, and that witness-cosigned head finality and receipts are themselves observable-only with fail-closed semantics.
+
+\paragraph{Contribution summary.}
+\begin{tightenum}
+\item Layering discipline: explicit theory/spec separation and a conformance rule that depends only on observable semantics.
+\item Epoch discipline and policy pinning that prevents rule drift under additional observation (Section~\ref{sec:epoch}--\ref{sec:dep_closed}).
+\item Dual-root witness-cosigned log-head finality and close-pinned cutoffs stable under later observations (Sections~\ref{sec:prefix}--\ref{sec:windows}).
+\item Witness-certified key-index uniqueness (locally checkable via index-membership proofs; not ``uniqueness by absence'') (Section~\ref{sec:index}).
+\item Cutoff-parameterized workload sealing: roster plus admission-count certified for the same cutoff bound, with bijection checks to prevent workload shrinkage (Section~\ref{sec:roster_count}).
+\item Multi-currency accounting with escrow reservation, replay-validated metering, cap fallback, and explicit window viability checks (Sections~\ref{sec:budgets}--\ref{sec:derive}).
+\item Deterministic derived transcripts over a close-pinned cutoff, producing explicit completeness and reason codes, with streaming transcript bounds and memory-safe fail-closed triggers (Sections~\ref{sec:derive}--\ref{sec:reasons}).
+\item Strict closure semantics yielding no progress inflation under adversarial missingness (Section~\ref{sec:closure}).
+\item Observable metrics with applicability gates, plus conditional acceleration envelopes and a deterministic test protocol for power-law premises (Sections~\ref{sec:metrics}--\ref{sec:accel}).
+\end{tightenum}
+
+\subsection{Reader orientation: trust boundary, object map, and strict-span prerequisites}
+\label{sec:reader_orient}
+
+\paragraph{What ``acceleration'' means here (and when it can mean ``intelligence'').}
+This paper studies a \emph{verification-limited} regime by defining an epoch-pinned, mechanically checkable progress variable $Y_t$ (Definitions~\ref{def:proginc} and \ref{def:prog_weight}) and deriving \emph{conditional} acceleration envelopes from \emph{observable} premises (Section~\ref{sec:accel}).
+By default, $Y_t$ is only a strictly auditable progress counter.
+Interpreting $Y_t$ as ``intelligence/capability'' progress requires an additional semantic link pinned by the epoch policy (Definition~\ref{def:semantic_adequacy}); otherwise, theorems in this paper should be read as statements about \emph{audit-ready progress accounting} under adversarial missingness, not about hidden ground truth.
+
+\paragraph{Trust boundary (no-meta, observable-only).}
+The system has no privileged judge: strict acceptance, strict progress credit, and strict diagnostics are deterministic functions of (i) the local observation surface and (ii) the pinned epoch policy identifier (Definition~\ref{def:obs_surface} and Section~\ref{sec:epoch}).
+Witness signatures and policy pinning are \emph{boundary conditions} expressed as observable artifacts (receipts, proofs, pinned registries); if missing or inconsistent, strict processing fails closed.
+Figure~\ref{fig:trust_boundary} summarizes what is inside vs.\ outside the strict verifier interface.
+
+\begin{figure}[H]
+\centering
+{\small
+\setlength{\fboxsep}{6pt}
+\begin{tabular}{@{}c@{}}
+\fbox{\begin{minipage}{0.92\linewidth}
+\textbf{Outside the strict interface (not trusted as ground truth)}\\
+\begin{tightitemize}
+\item External environment and any ``true'' labels (may be adversarial or unavailable).
+\item Network availability / dissemination (split views, missing blobs, missing proofs).
+\end{tightitemize}
+\end{minipage}}\\[0.7em]
+$\Downarrow$ (locally observed artifacts)\\[0.7em]
+\fbox{\begin{minipage}{0.92\linewidth}
+\textbf{Inputs to the strict verifier (observable-only)}\\
+\begin{tightitemize}
+\item Observation surface $\mathcal{O}$: receipts, proofs, pinned registries, content-addressed blobs (Definition~\ref{def:obs_surface}).
+\item Pinned epoch policy object identified by \code{policy\_hash} (Definition~\ref{def:policy_object}).
+\end{tightitemize}
+\end{minipage}}\\[0.7em]
+$\Downarrow$ (deterministic, bounded replay + checks)\\[0.7em]
+\fbox{\begin{minipage}{0.92\linewidth}
+\textbf{Inside the strict verifier}\\
+\begin{tightitemize}
+\item Verify artifacts, certify a close-pinned cutoff, select unique receipts by index-membership proofs, and derive a transcript (Sections~\ref{sec:prefix}--\ref{sec:derive}).
+\item Output strict window grade, strict charges, and strict progress $\Delta Y(w)$ only when \textbf{STRICT} (Definitions~\ref{def:grade} and \ref{def:proginc}).
+\end{tightitemize}
+\end{minipage}}\\
+\end{tabular}
+}
+\caption{Trust boundary: strict results are functions of observable artifacts and a pinned policy, not of hidden ground truth.}
+\label{fig:trust_boundary}
+\end{figure}
+
+\paragraph{Local observability vs.\ shared truth.}
+All strict outputs are \emph{agent-local} functions of $\mathcal{O}$ and \code{policy\_hash}.
+Different agents may have different observation surfaces (split view), and therefore may output different strict grades/transcripts until they converge on the same certified cutoff evidence.
+The no-inflation theorem is therefore a \emph{local} monotonicity law under weakening (Section~\ref{sec:no_inflation}); cross-agent agreement additionally depends on the availability of shared proofs/heads and split-view handling (Section~\ref{sec:threat}).
+
+\paragraph{Term-to-object map (quick lookup).}
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{p{0.26\linewidth} p{0.68\linewidth}}
+\toprule
+\textbf{Term / symbol} & \textbf{Concrete object (where defined)} \\ \midrule
+\code{policy\_hash} & Content address of the epoch policy object; pins rules and registries (Definition~\ref{def:policy_object}). \\
+Observation surface $\mathcal{O}$ & Agent-local artifact set (receipts, proofs, pinned registries, blobs) (Definition~\ref{def:obs_surface}). \\
+$\mathsf{Verified}(\mathcal{O})$ & Artifacts that parse/canonicalize and verify within bounds (Definition~\ref{def:verified_set}). \\
+Log head / \code{head\_commit} & Witness-cosigned dual-root head and its verifier-computable commitment (Definitions~\ref{def:log_head}--\ref{def:head_commit}). \\
+Finality certificate & \code{FinalityCertReceipt} certifying a head for strict use (Definition~\ref{def:finality_cert}). \\
+Cutoff $\textsf{Cutoff}(w)$ & Close-pinned descriptor $(h_{\textsf{end}},i_{\textsf{end}})$ for a window instance (Definitions~\ref{def:window_instance} and \ref{def:cutoff}). \\
+Index root / membership proof & \code{index\_root} commits to a key--value map; \code{IndexMembershipProof} checks uniqueness/aggregates (Definitions~\ref{def:index_kv}, \ref{def:idx_proof}, \ref{def:index_unique}). \\
+$\mathsf{Select}_T$ & Receipt selection by index-unique outcome at the cutoff (Definition~\ref{def:surface_unique}). \\
+$n_{\textsf{adm}}(w)$ & Cutoff-scoped admission count certified by the index root (Definition~\ref{def:adm_count_at_cutoff}). \\
+$\mathcal{A}(w)$ & Cutoff-scoped attempted-admission roster from \code{WindowRosterReceipt} (Definition~\ref{def:attempted_roster}). \\
+\textbf{STRICT} / \textbf{NONSTRICT} & Window transcript grade (Definition~\ref{def:grade}). \\
+Strict completeness & Candidate-level completeness at a close-pinned cutoff (Definition~\ref{def:complete_strict}). \\
+$\mathsf{StrictAccept}(R)$ & Strict acceptance predicate from strict completeness + epoch predicates (Definition~\ref{def:strict_accept}). \\
+$\Delta Y(w)$ / $Y_t$ & Strict-only progress increment and cumulative progress (Definitions~\ref{def:proginc} and \ref{def:prog_weight}). \\
+Diagnostic gate & Strict diagnostics apply only to \textbf{STRICT} windows (Definition~\ref{def:diag_gate}). \\
+Semantic adequacy & When $Y_t$ can be interpreted as capability/intelligence (Definition~\ref{def:semantic_adequacy}). \\
+\bottomrule
+\end{tabular}
+\caption{Term-to-object map: where abstract terms correspond to concrete receipts/proofs/objects.}
+\label{tab:term_object_map}
+\end{table}
+
+\paragraph{Strict-span prerequisites (why envelopes are conditional).}
+A multi-window strict diagnostic span (Definition~\ref{def:diag_span}) is intentionally hard to fake.
+Operationally, a span exists only when the observation surface consistently contains what strict derivation requires:
+\begin{tightitemize}
+\item \textbf{Pinned rules available:} the policy object and all pinned registries/blobs needed for verification/replay are present and within epoch bounds (Assumption~\ref{ass:bounded_verif} and Definition~\ref{def:bounds}).
+\item \textbf{Certified cutoffs:} each window instance supplies an explicit \code{end\_head\_commit} and has a verified \code{FinalityCertReceipt} for that head (Definitions~\ref{def:window_instance} and \ref{def:finality_cert}).
+\item \textbf{Sealed workload:} at the cutoff head, $n_{\textsf{adm}}(w)$ is defined and $\le N_{\max}$, and $\mathcal{A}(w)$ is defined and passes roster/count sealing (Definitions~\ref{def:adm_count_at_cutoff}, \ref{def:attempted_roster}, and Lemma~\ref{lem:roster_complete}).
+\item \textbf{Bounded derivation succeeds:} replay is deterministic, transcript size stays $\le T_{\max}$, the gas limiter stays $\le G_{\max}$, cap consistency holds, and ledger viability holds (Definitions~\ref{def:drp}, \ref{def:streaming_len}, \ref{def:cap_consistency}, and \ref{def:V}; Assumption~\ref{ass:window_gas}).
+\item \textbf{Cross-agent comparability (optional):} agents converge on the same certified head evidence; split-view contradictions are handled fail-closed for strict use (Section~\ref{sec:threat}).
+\end{tightitemize}
+When these prerequisites break (missingness, equivocation evidence, missing blobs, or exceeded bounds), the model predicts a deterministic exit to \textbf{NONSTRICT} before any optimistic diagnostic extrapolation is allowed.
+
+\section{Foundations: bytes, receipts, and observation surfaces}
+
+\subsection{Observable-only and no-meta admissibility}
+
+\begin{definition}[Observable-only admissibility]
+An agent is \term{observable-only} if every decision relevant to external effects is a deterministic function of a finite, explicitly enumerated observation surface and an epoch policy identifier:
+\[
+\text{Decision}_t = f(\mathcal{O}_{\le t}, \textsf{policy\_hash}),
+\]
+where $\mathcal{O}_{\le t}$ is an agent-local artifact set consisting only of locally checkable objects (receipts, proofs, pinned registries, and content-addressed blobs), and \textsf{policy\_hash} is epoch-pinned (Section~\ref{sec:epoch}).
+\end{definition}
+
+\begin{definition}[No-meta admissibility]
+A system is \term{no-meta} if no privileged entity's unverifiable judgment can change acceptance, credited progress, or authority-plane effects. All such transitions \MUST{} be justified by mechanically checkable artifacts in the observation surface.
+\end{definition}
+
+\subsection{Canonical byte encodings, parsing, and domain-separated hashing (normative)}
+
+\begin{definition}[Primitive byte encodings and decoding convention (normative)]
+\label{def:bytes}
+Within an epoch, the following encodings \MUST{} be used for hash inputs and proof binding:
+\begin{tightitemize}
+\item \textbf{U64BE}: For $n\in[0,2^{64}-1]$, $\mathsf{U64BE}(n)$ is the 8-byte big-endian encoding.
+\item \textbf{HEX64}: A 64-char lowercase hex string encoding 32 bytes. Hash inputs \MUST{} use the decoded 32 bytes.
+\item \textbf{B64U}: Base64url without padding (RFC~4648); hash inputs \MUST{} use decoded bytes.
+\item \textbf{UTF8}: For strings, hash inputs use UTF-8 bytes.
+\end{tightitemize}
+We write $\mathsf{Bytes}(\cdot)$ for the deterministic decoding map implied by the type. Any parse failure, range error, non-canonical encoding, non-lowercase HEX64, invalid UTF-8, or invalid base64url \MUST{} fail closed for strict use.
+\end{definition}
+
+\begin{definition}[Fail-closed integer parsing for receipts (normative)]
+\label{def:parse_u64}
+Within an epoch, integer-valued receipt fields represented as JSON strings \MUST{} be parsed as base-10 unsigned integers in $[0,2^{64}-1]$ with no leading zeros (except \code{"0"}). Any parse failure \MUST{} fail closed for strict use.
+\end{definition}
+
+\begin{definition}[Deterministic integer arithmetic profile (normative)]
+\label{def:arith_profile}
+All verifier-side derived computations used for strict acceptance (e.g., charging, cap schedules, and hypothesis tests used in diagnostics) \MUST{} be performed under an \term{integer arithmetic profile} pinned by the epoch policy (Definition~\ref{def:policy_object}). The profile \MUST{} fix, at minimum:
+\begin{tightitemize}
+\item the integer domain used for intermediate results (e.g., unbounded integers with explicit bit-length caps, or a fixed-width family such as \textsf{U64}/\textsf{U128}),
+\item the exact behavior of each primitive operation (addition, subtraction, multiplication, exponentiation) including overflow/underflow detection,
+\item upper bounds on intermediate magnitudes (e.g., maximum bit-length, maximum exponent, maximum number of multiplications) that are mechanically checkable from inputs.
+\end{tightitemize}
+Any overflow, underflow, cap breach, or missing profile \MUST{} fail closed for strict use. This prevents numerical ambiguity (different runtimes producing different verdicts) from becoming an attack surface.
+\end{definition}
+
+\begin{definition}[Length-prefix encoding (normative)]
+\label{def:lp}
+Within an epoch, all structured hash inputs \MUST{} be formed by concatenating length-delimited byte strings:
+\[
+\LP(x) := \mathsf{U64BE}(|x|)\ \|\ x,
+\]
+for a byte string $x$, where $|x|$ is its byte length.
+The epoch \MUST{} pin enforceable bounds on:
+(a) the maximum number of concatenated segments,
+(b) the maximum total concatenated length, and
+(c) the maximum nesting/recursion depth of any structured encoding that composes $\LP(\cdot)$ (e.g., ``lists of lists'').
+Parsers and verifiers \MUST{} reject (fail closed) any input exceeding any pinned bound.
+\end{definition}
+
+
+\begin{lemma}[Unique decodability of $\LP$-concatenation]
+\label{lem:lp_unique}
+For any finite sequence $(x_1,\dots,x_n)$, the byte string $\LP(x_1)\|\cdots\|\LP(x_n)$ is uniquely decodable into $(x_1,\dots,x_n)$.
+\end{lemma}
+\begin{proof}
+Each segment begins with a fixed-width length. Read the next 8 bytes to obtain $|x_i|$, then read exactly $|x_i|$ bytes, and repeat.
+\end{proof}
+
+\begin{definition}[Domain separation (normative)]
+\label{def:ds}
+Within an epoch, $\DS_{\textsf{epoch}}$ denotes a fixed byte string (epoch constant) used as the first segment of all epoch-domain-separated hashes. The epoch \MUST{} specify (i) $\DS_{\textsf{epoch}}$ bytes, and (ii) the hash function $\Hash$ (e.g., SHA-256 \cite{NISTFIPS1804}). Verifiers \MUST{} reject any artifact that claims a hash without matching the epoch-defined $\Hash$ and $\DS_{\textsf{epoch}}$.
+\end{definition}
+
+\begin{definition}[Global domain separator for cross-epoch evidence identity]
+\label{def:ds_global}
+To make evidence identity cross-epoch comparable, define
+\[
+\DS_{\textsf{gid}}:=\mathsf{Bytes}(\textsf{UTF8}(\texttt{"EVIDENCE\_GID\_v1"})).
+\]
+This constant is global and not epoch-dependent.
+\end{definition}
+
+\subsection{Receipts, signatures, canonicalization, and receipt hash}
+
+\begin{definition}[Receipt canonicalization and receipt hash (normative)]
+\label{def:rcpt_hash}
+A receipt is a JSON object obeying:
+\begin{tightitemize}
+\item it \MUST{} be canonicalized by RFC~8785 JCS (no duplicate keys; deterministic UTF-8; normalized number representations) before hashing or signing,
+\item it \MUST{} contain \code{type}, \code{v}, and \code{policy\_hash} fields,
+\item it \MUST{} contain exactly one signature field \code{sig} and exactly one digest field \code{hash},
+\item it \MUST{} be rejected if any non-allowlisted field appears (epoch-pinned allowlists).
+\end{tightitemize}
+
+\textbf{Core vs.\ context fields (non-circularity requirement).}
+For each receipt type $T$, the epoch policy \MUST{} partition its allowlisted fields into:
+\begin{tightitemize}
+\item \emph{core fields}: included in the receipt hash,
+\item \emph{context fields}: excluded from the receipt hash, but \MUST{} be validated against observable proofs/anchors during strict processing.
+\end{tightitemize}
+Context fields exist to avoid circular dependencies when a receipt carries values that are \emph{log-determined} by the very inclusion proof used to validate it. Typical examples include head references (e.g.\ \code{*\_head\_commit}) and cutoff indices (e.g.\ \code{*\_leaf\_index}). Context fields \MAY{} be present for convenience and replay, but they are not author-committed.
+
+Define the \emph{receipt core} object $\textsf{core}(R)$ as the JCS-canonical JSON object obtained from $R$ by:
+(i) removing \code{hash} and \code{sig}, and
+(ii) removing all context fields for its type.
+Then the receipt hash is:
+\begin{align*}
+\textsf{hash}(R)\ \ :=\ \ \Hash\!\big(
+  &\LP(\DS_{\textsf{epoch}})
+  \|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(\texttt{"RECEIPT"})))\\
+  &\|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(R.\textsf{type})))\\
+  &\|\ \LP(\mathsf{Bytes}(\textsf{HEX64}(R.\textsf{policy\_hash})))\\
+  &\|\ \LP(\mathsf{Bytes}(\textsf{JCS}(\textsf{core}(R))))
+\big).
+\end{align*}
+The signature \code{sig} \MUST{} be computed over the same byte string used for \textsf{hash}(R) (domain-separated by \texttt{"RECEIPT"} and policy), and verifiers \MUST{} reject receipts whose \code{hash} does not recompute.
+
+\textbf{Normative:} if a receipt includes any context field required for strict semantics, then strict processing \MUST{} additionally validate that context field against the corresponding observable proof/anchor used for strict acceptance (Definition~\ref{def:post_attest}). If context validation fails, strict semantics fail closed.
+\end{definition}
+
+
+\begin{definition}[Receipt signature (epoch-defined; normative)]
+\label{def:sig}
+A receipt \MUST{} carry an epoch-defined signature bundle authenticating its \code{hash} (Definition~\ref{def:rcpt_hash}). The epoch defines:
+(i) a signature scheme identifier \code{sig\_alg}, (ii) a canonical signer identifier format \code{signer\_id}, and (iii) a verifier for \code{sig} over the receipt \code{hash}, with signer authorization pinned by \code{policy\_hash}.
+
+\textbf{Normative ordering:} verifiers \MUST{} (a) canonicalize the receipt, (b) recompute \code{hash} from the receipt core (omitting \code{hash} and \code{sig}), and then (c) verify \code{sig} over that recomputed \code{hash}. Missing/invalid signatures \MUST{} cause fail-closed rejection for strict purposes.
+\end{definition}
+
+\begin{assumption}[Bounded verification]
+\label{ass:bounded_verif}
+For every artifact type (receipts, proofs, pinned registries, referenced blobs), the epoch specifies finite bounds sufficient to guarantee verification time/memory are bounded and enforceable. Any bound violation \MUST{} fail closed where detected.
+\end{assumption}
+
+\begin{assumption}[Window-bounded derivation and gas/complexity discipline]
+\label{ass:window_gas}
+Beyond per-artifact boundedness, the epoch \MUST{} ensure that strict transcript derivation is resource-bounded and enforceable under adversarial missingness.
+Concretely, the epoch \MUST{} pin:
+\begin{tightitemize}
+\item an overall derivation budget $G_{\max}$ for \textsf{DeriveWindowTranscript} (Algorithm~\ref{alg:derive_window}),
+\item bounded proof counts/sizes and bounded replay for each mandatory stage,
+\item enforceable maxima $N_{\max}$ and $|\mathcal{J}_{\textsf{mand}}|$ such that worst-case derivation cost is bounded by an epoch-defined function
+\[
+\mathsf{DeriveGasMax}(N_{\max},|\mathcal{J}_{\textsf{mand}}|,\textsf{proof\_bounds};\textsf{policy\_hash})\le G_{\max}.
+\]
+\end{tightitemize}
+If the limiter is exceeded at runtime, strict derivation \MUST{} fail closed deterministically (mark the window \textbf{NONSTRICT} with a pinned reason code).
+Moreover, any work already performed and any remaining mandatory stages \MUST{} be accounted for conservatively under the charging semantics (Section~\ref{sec:charging}); in particular, missing or aborted stages are treated as missingness and are charged at \emph{cap} under the conservative resolution rule (Definition~\ref{def:conservative_resolution}).
+\end{assumption}
+
+
+\begin{assumption}[Deterministic replay]
+\label{ass:det_replay}
+Within an epoch, parsing, canonicalization, verification, ordering, tie-breaking, replay, and transcript derivation \MUST{} be deterministic under epoch rules and the certified close-pinned cutoff (Definitions~\ref{def:cutoff} and \ref{def:grade}). Any nondeterminism source (clock jitter, floating point, concurrency races, RNG) \MUST{} be eliminated or pinned by explicit epoch rules and receipts.
+\end{assumption}
+
+\subsection{Observation surfaces and verified artifact sets}
+
+\begin{definition}[Observation surface]
+\label{def:obs_surface}
+An observation surface $\mathcal{O}_{\le t}$ is a finite set (or stream prefix) of byte-identical artifacts available to the agent up to time $t$, including receipts, proofs, pinned registries, and content-addressed blobs referenced by receipts.
+\end{definition}
+
+\begin{definition}[Verified artifact set]
+\label{def:verified_set}
+Given epoch rules, define $\mathsf{Verified}(\mathcal{O})$ as the set of artifacts in $\mathcal{O}$ that:
+(i) parse/canonicalize within bounds,
+(ii) satisfy all epoch-defined validity checks (including recomputation of receipt hashes and signature validity),
+and (iii) have all required dependencies present and valid (including referenced blobs and pinned registries).
+Artifacts failing any check remain in $\mathcal{O}$ but are not in $\mathsf{Verified}(\mathcal{O})$.
+\end{definition}
+
+\begin{definition}[Cutoff-bounded verification (list inclusion + index membership)]
+\label{def:cutoff_verified}
+Fix an observation surface $\mathcal{O}$, a head commit $h$, and an integer cutoff index $i_{\max}$.
+Let \textsf{tree\_size} be read from the embedded head in some verified \code{FinalityCertReceipt} for $h$.
+Assume $0\le i_{\max}<\textsf{tree\_size}$.
+An artifact $X$ is \term{cutoff-verified at $(h,i_{\max})$} iff:
+\begin{tightitemize}
+\item[(i)] $X\in\mathsf{Verified}(\mathcal{O})$,
+\item[(ii)] there exists a verified inclusion proof placing $X$ at some leaf index $i_X\le i_{\max}$ (Definition~\ref{def:incl}),
+\item[(iii)] if epoch rules require binding-key uniqueness for the type of $X$, then an index-membership proof at head $h$ exists for $X$'s binding key and returns \textsf{UNIQUE}($X.\textsf{hash}$) (Definition~\ref{def:index_unique}).
+\end{tightitemize}
+
+\textbf{Normative (uniqueness must be evaluated on the certified cutoff head):}
+if condition (iii) is invoked for strict processing at $(h,i_{\max})$, verifiers \MUST{} additionally enforce
+\[
+i_{\max}=\textsf{tree\_size}-1,
+\]
+so that binding-key uniqueness is certified on the exact head used for strict processing (a close-pinned cutoff head).
+If this check fails, $X$ is \emph{not} cutoff-verified (fail closed).
+
+Write $\mathsf{VerifiedCut}(\mathcal{O};h,i_{\max})$ for the set of cutoff-verified artifacts.
+\end{definition}
+
+
+\begin{lemma}[Cutoff-verified monotonicity under weakening]
+\label{lem:verifiedcut_mono}
+If $\mathcal{O}'\preceq\mathcal{O}$, then $\mathsf{VerifiedCut}(\mathcal{O}';h,i_{\max})\subseteq \mathsf{VerifiedCut}(\mathcal{O};h,i_{\max})$ for any fixed $(h,i_{\max})$.
+\end{lemma}
+\begin{proof}
+A cutoff-verification uses only (a) local validity checks (Lemma~\ref{lem:verified_mono}) and (b) inclusion/index proofs that are themselves artifacts in the surface. If all required artifacts exist in $\mathcal{O}'$, they also exist (with identical bytes) in $\mathcal{O}$.
+\end{proof}
+
+\begin{definition}[Monotone selection of transcript-critical receipts (index-unique; fail closed)]
+\label{def:surface_unique}
+Strict derivation \MUST{} not rely on the \emph{absence} of competing receipts in the observation surface.
+Instead, transcript-critical receipts are selected only through (a) cutoff-bounded inclusion and (b) binding-key uniqueness as certified by the index root at the close-pinned cutoff.
+
+Fix an observation surface $\mathcal{O}$, a verifying anchor $(h,i_{\max})$, a receipt type $T$, and a binding key $k$.
+Let the canonical index key for $(T,k)$ be
+\[
+\textsf{ikey}_T(k) := \Hash\!\big(\LP(\DS_{\textsf{epoch}})\ \|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(\texttt{"IKEY"})))\ \|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(T)))\ \|\ \LP(\mathsf{Bytes}(\textsf{JCS}(k)))\big)
+\]
+(Definition~\ref{def:index_kv}).
+
+Define $\mathsf{Select}_T(\mathcal{O};h,i_{\max},k)$ as follows:
+\begin{tightitemize}
+\item Obtain an index-membership proof at head $h$ for $\textsf{ikey}_T(k)$.
+\item If the proof returns \textsf{UNIQUE}($u$), require that $\mathcal{O}$ contains a receipt $R$ with $R.\textsf{hash}=u$ and $R\in\mathsf{VerifiedCut}(\mathcal{O};h,i_{\max})$ (Definition~\ref{def:cutoff_verified}).
+\item If all checks succeed, return that receipt $R$; otherwise return $\emptyset$.
+\end{tightitemize}
+If the index proof returns \textsf{EMPTY}, \textsf{MULTI}, or any non-\textsf{UNIQUE} outcome, return $\emptyset$.
+
+\textbf{Normative:} if $\mathsf{Select}_T=\emptyset$ for any transcript-critical receipt required for strict completeness, strict processing \MUST{} fail closed and the window grade becomes \textbf{NONSTRICT}.
+\end{definition}
+
+
+
+
+\begin{definition}[Weakening of an observation surface]
+\label{def:weakening}
+Let $\mathcal{O}$ and $\mathcal{O}'$ be two observation surfaces in the same epoch. We say $\mathcal{O}'\preceq \mathcal{O}$ (a weakening) if every artifact in $\mathcal{O}'$ is also in $\mathcal{O}$ with identical bytes.
+\end{definition}
+
+\begin{lemma}[Verified-set monotonicity under weakening]
+\label{lem:verified_mono}
+If $\mathcal{O}'\preceq\mathcal{O}$, then $\mathsf{Verified}(\mathcal{O}')\subseteq \mathsf{Verified}(\mathcal{O})$.
+\end{lemma}
+\begin{proof}
+A verification succeeds only using artifacts present in the surface. If it succeeds in $\mathcal{O}'$, all used artifacts are present with identical bytes in $\mathcal{O}$, so the same checks succeed.
+\end{proof}
+
+\subsection{Deterministic comparison of rational diagnostics (normative)}
+
+To avoid floating point and implementation divergence, all ratio comparisons used for classification \MUST{} be performed by integer cross-multiplication with explicit overflow checks.
+
+\begin{definition}[Deterministic fraction comparison (normative)]
+\label{def:frac_cmp}
+Let $(a,b)$ and $(c,d)$ be integer pairs with $a,c\in\N$ and $b,d\in\N\setminus\{0\}$. Define:
+\[
+(a,b)\ \ge_{\textsf{frac}}\ (c,d)\quad \text{iff}\quad a\cdot d\ \ge\ c\cdot b,
+\]
+where products are computed in a bounded integer domain with explicit overflow detection (\MUST{} fail closed for strict classification if overflow is detected).
+Similarly define $>_{\textsf{frac}}$ and $\le_{\textsf{frac}}$.
+\end{definition}
+
+\begin{lemma}[Rational soundness of \texorpdfstring{$\mathsf{frac\_cmp}$}{frac comparison}]
+\label{lem:frac_cmp_sound}
+Let $(a,b)$ and $(c,d)$ be nonnegative integer pairs with $b>0$ and $d>0$.
+If the products $a\cdot d$ and $c\cdot b$ are computed exactly (no overflow), then:
+\[
+\mathsf{frac\_cmp}((a,b),(c,d))\ \text{agrees with the rational order of}\ \frac{a}{b}\ \text{and}\ \frac{c}{d}.
+\]
+If overflow (or invalid denominators) is detected and the protocol fails closed, any derived strict acceleration claim that depends on this comparison is undefined (conservative).
+\end{lemma}
+\begin{proof}
+Cross-multiplication over $\mathbb{N}$ preserves the order over $\mathbb{Q}$ when computed exactly.
+\end{proof}
+
+
+\section{Epoch discipline and policy pinning}
+\label{sec:epoch}
+
+\subsection{Epoch identifiers and policy objects (normative)}
+
+\begin{definition}[Epoch identifier]
+\label{def:epoch_id}
+An \term{epoch} is a regime in which verification, replay, and accounting rules are fixed. The epoch identifier \code{epoch} \MUST{} be a bounded-length ASCII string (epoch-defined maximum) and is treated as an input to window identity (Definition~\ref{def:window_id}) and evidence commitment (Definition~\ref{def:ev_commit}). Invalid encodings \MUST{} fail closed for strict use.
+\end{definition}
+
+\begin{definition}[Pinned policy object and policy hash]
+\label{def:policy_object}
+Each epoch has a \term{policy object} content-addressed by \code{policy\_hash} (HEX64). The policy object \MUST{} commit (by hash) to all rule sets required for verification and replay, including at minimum:
+\begin{tightitemize}
+\item $\DS_{\textsf{epoch}}$ bytes and the hash algorithm identifier for $\Hash$,
+\item canonicalization profile (JCS + constraints), receipt allowlists, per-type hashed-field sets,
+\item signature rules and signer authorization registries (pinned roots),
+\item transparency-log parameters (log id, witness quorum policy, leaf format, proof formats/bounds),
+\item dual-root head fields and index-membership proof verification rules (Section~\ref{sec:index}),
+\item index update rules for uniqueness and aggregate entries (Sections~\ref{sec:index} and \ref{sec:roster_count}),
+\item deterministic replay profile \textsf{DRP} (VM/version, syscall surface, gas rules),
+\item \emph{derivation gas bounds} $G_{\max}$ and a deterministic upper-bound function $\mathsf{DeriveGasMax}(\cdot)$ (Assumption~\ref{ass:window_gas}),
+\item $\mathsf{DeriveMaxFromLen}(\cdot)$, $\mathsf{StageCap}(\cdot)$, ordering rules, transcript size rules, and streaming size accounting rules (Section~\ref{sec:derive}),
+\item a pinned list of cap-schedule breakpoints used for boundary checking (Section~\ref{sec:charging}),
+\item integer ranges and overflow/underflow handling, including the full deterministic integer arithmetic profile (Definition~\ref{def:arith_profile}) (\MUST{} fail closed),
+\item strictness/completeness predicates (Definitions~\ref{def:complete_strict}--\ref{def:strict_accept}),
+\item estimator rules (p99 definition, minimum samples, deterministic tie-breaks, fail-closed under undersampling),
+\item deterministic parameter-selection rules for any hypothesis tests used in diagnostics (e.g., Appendix~\ref{sec:powerlaw_test}),
+\item enforceable maxima $N_{\max}$ and $T_{\max}$, and allowlists for stage ids (Definition~\ref{def:mand_stages}),
+\item any decompression or external fetching rules (\MUSTNOT{} be permitted for strict use unless explicitly bounded and pinned).
+\end{tightitemize}
+Receipts, proofs, and derived transcripts \MUST{} be interpreted only under the policy object pinned by their \code{policy\_hash}. Any mismatch \MUST{} fail closed for strict use.
+\end{definition}
+
+\subsection{Dependency pinning principle}
+\label{sec:dep_closed}
+
+\begin{definition}[Dependency-closed verification]
+\label{def:dep_closed}
+Verification is \term{dependency-closed} if every artifact is verified only against:
+(i) the artifact bytes, (ii) the \code{policy\_hash} stated by the artifact, and (iii) dependency objects whose identities are pinned by hashes referenced by the artifact or by \code{policy\_hash}. Additional visible registries \MUSTNOT{} be substituted for pinned dependencies.
+\end{definition}
+
+\begin{assumption}[Dependency-closed epoch discipline]
+\label{ass:dep_closed}
+All receipt/proof verification is dependency-closed (Definition~\ref{def:dep_closed}). Adding artifacts to an observation surface cannot change the dependency interpretation of an already-verified artifact.
+\end{assumption}
+
+\section{Witness-cosigned dual-root log heads and proofs}
+\label{sec:prefix}
+
+Transparency logs (Merkle trees) provide append-only commitments \cite{Merkle1987,RFC6962,RFC9162}. Tamper-evident logging and witness cosigning provide observable resistance to equivocation \cite{CrosbyWallach2009,SytaCoSi2016}.
+
+\subsection{Log leaves, leaf hash, and dual-root heads}
+
+\begin{definition}[Log leaf encoding and leaf hash (normative)]
+\label{def:leaf_hash}
+An epoch defines which receipts are admissible as log leaves and how each leaf is encoded. A minimal admissible encoding is:
+\begin{align*}
+\textsf{leaf\_hash}:=\Hash\!\left(\begin{aligned}
+&\LP(\DS_{\textsf{epoch}})\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(\texttt{"LEAF"})))\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(\textsf{type})))\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{receipt\_hash}))
+\end{aligned}\right),
+\end{align*}
+where \textsf{type} is the receipt type string and \textsf{receipt\_hash} is the 32-byte digest in \code{hash} (Definition~\ref{def:rcpt_hash}).
+Verifiers \MUST{} recompute \textsf{leaf\_hash} from the receipt bytes and fail closed if any mismatch occurs in proof binding.
+\end{definition}
+
+\begin{definition}[Witness-cosigned dual-root log head]
+\label{def:log_head}
+A \term{log head} is an epoch-defined signed object binding:
+\[
+\textsf{Head} = (\textsf{log\_id},\ \textsf{tree\_size},\ \textsf{list\_root},\ \textsf{index\_root},\ \textsf{policy\_hash}),
+\]
+where:
+\begin{tightitemize}
+\item \textsf{log\_id} is a 32-byte identifier (HEX64 in receipts) pinned by the epoch (and by the witness registry pinned by \code{policy\_hash}),
+\item \textsf{list\_root} commits to an append-only Merkle tree of leaf hashes (Definition~\ref{def:leaf_hash}),
+\item \textsf{index\_root} commits to a verifiable key-index used to mechanically check uniqueness and bounded aggregate facts (Sections~\ref{sec:index} and \ref{sec:roster_count}).
+\end{tightitemize}
+The head carries a signature set satisfying a pinned witness quorum rule (membership and threshold pinned by \code{policy\_hash}). Missing/invalid witness signatures \MUST{} fail closed for strict-grade use.
+\end{definition}
+
+\begin{definition}[Head commit (verifier-computable; normative)]
+\label{def:head_commit}
+Given a log head $\textsf{Head}$, define:
+\begin{align*}
+\textsf{head\_commit}:=\Hash\!\left(\begin{aligned}
+&\LP(\DS_{\textsf{epoch}})\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(\texttt{"HEAD"})))\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{log\_id}))\\
+&\|\ \LP(\mathsf{U64BE}(\textsf{tree\_size}))\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{list\_root}))\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{index\_root}))\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{policy\_hash}))
+\end{aligned}\right).
+\end{align*}
+Verifiers \MUST{} recompute \textsf{head\_commit} and fail closed on mismatch.
+\end{definition}
+
+\subsection{Finality certificate receipt (strict-grade head evidence)}
+
+\begin{definition}[Finality certificate receipt]
+\label{def:finality_cert}
+A \code{FinalityCertReceipt} is a receipt whose allowlisted payload includes:
+\begin{tightitemize}
+\item the embedded head object $\textsf{Head}$ (Definition~\ref{def:log_head}),
+\item \code{head\_commit} (Definition~\ref{def:head_commit}),
+\item a witness signature set satisfying the epoch-pinned quorum rule,
+\item a consistency proof linking this head to an epoch-pinned checkpoint head (at minimum, an epoch-genesis head), under epoch rules (Definition~\ref{def:cons}).
+\end{tightitemize}
+For strict use, a cutoff head commit \MUST{} be accompanied (in the observation surface) by at least one verified \code{FinalityCertReceipt} that:
+(i) recomputes to the same \code{head\_commit},
+(ii) matches the embedded \textsf{log\_id} and \textsf{policy\_hash},
+(iii) satisfies quorum checks, and
+(iv) includes a valid checkpoint-to-head consistency proof.
+If any condition fails, the cutoff is uncertified (fail closed).
+\end{definition}
+
+\begin{assumption}[Finality soundness for strict-grade heads]
+\label{ass:finality_sound}
+Within a fixed epoch and \textsf{policy\_hash}, any verified \code{FinalityCertReceipt} for \code{head\_commit} is treated as sound evidence that the corresponding \textsf{Head} represents a unique append-only log prefix (no quorum-equivocation), and that its checkpoint-to-head consistency proof rejects divergent forks under the epoch's rules.
+If a verifier detects inconsistent finality evidence (e.g., two non-consistent heads both passing quorum checks for the same \textsf{log\_id} and \textsf{policy\_hash}), strict processing \MUST{} fail closed for all windows whose cutoff depends on that evidence.
+\end{assumption}
+
+
+\subsection{Append-only proofs (bounded, verifiable)}
+
+\begin{definition}[Inclusion proof artifact (list root)]
+\label{def:incl}
+An \term{inclusion proof} binds
+$(\textsf{log\_id},\ \textsf{head\_commit},\ \textsf{leaf\_index},\ \textsf{leaf\_hash},\ \pi_{\textsf{path}})$
+such that, under epoch-defined rules (e.g., RFC~9162 style), the verifier can confirm that the leaf at \textsf{leaf\_index} with hash \textsf{leaf\_hash} is included in the Merkle tree committed by the head's \textsf{list\_root} at \textsf{tree\_size}. Strict use \MUST{} require verified inclusion proofs when a definition requires ``included at cutoff.''
+\end{definition}
+
+\begin{definition}[Consistency proof artifact (list root)]
+\label{def:cons}
+A \term{consistency proof} binds
+$(\textsf{log\_id},\ \textsf{head\_commit}_1,\ \textsf{head\_commit}_2,\ \pi_{\textsf{cons}})$
+such that the verifier can confirm (under epoch rules) that head 2 is an append-only extension of head 1 with respect to the \textsf{list\_root}.
+\end{definition}
+
+\begin{assumption}[Proof boundedness]
+\label{ass:proof_bounded}
+Inclusion and consistency proofs have enforceable epoch bounds (path length, encoding size), and index-membership proofs are likewise bounded. Any violation \MUST{} fail closed.
+\end{assumption}
+
+\begin{definition}[Evidence artifacts and self-reference avoidance (normative)]
+\label{def:offlog_evidence}
+Artifacts whose payload binds to a head commit (notably \code{FinalityCertReceipt}, \code{InclusionProof}, \code{ConsistencyProof}, and index-membership proofs) are treated as \term{evidence artifacts} carried on the observation surface. They are \emph{not} required to appear as log leaves and \MAY{} be transported out-of-band.
+
+Receipts may also carry head references (fields of the form \code{*\_head\_commit}) and cutoff indices (fields of the form \code{*\_leaf\_index}). These are treated as \emph{context fields} (Definition~\ref{def:rcpt_hash}): they are excluded from the receipt hash and therefore do not introduce circular self-reference when the receipt is included in the very head it references.
+
+\textbf{Normative:} any strict semantic use of context fields \MUST{} validate them only via observable evidence at the verifying anchor, using $\mathsf{PostAttested}$ (Definition~\ref{def:post_attest}). If the required evidence is missing or inconsistent, strict processing fails closed.
+\end{definition}
+
+
+\begin{definition}[Context-field validation for referenced-head receipts (normative; fail closed)]
+\label{def:post_attest}
+This paper permits receipts to carry \emph{context fields} (Definition~\ref{def:rcpt_hash}) such as \code{*\_head\_commit} and \code{*\_leaf\_index}. These fields are excluded from receipt hashing and therefore \emph{do not} create circular dependencies, but they \emph{can} be lied about unless validated.
+
+Fix an observation surface $\mathcal{O}$, a receipt $R$ of some type $T$, and a verifying anchor $(h,i_{\max})$ with a verified \code{FinalityCertReceipt} for $h$.
+Write $C_T(R)$ for the set of context fields of type $T$ under the epoch policy.
+
+Define $\mathsf{PostAttested}(\mathcal{O};R,h,i_{\max})$ to hold iff:
+\begin{tightitemize}
+\item[(i)] $R$ is cutoff-verified at $(h,i_{\max})$ (Definition~\ref{def:cutoff_verified}), and
+\item[(ii)] every head-reference context field in $C_T(R)$ that appears in $R$ equals $h$, and
+\item[(iii)] every cutoff-index context field in $C_T(R)$ that appears in $R$ equals the intended bound for the strict check (e.g.\ equals $i_{\max}$ when the semantics refer to the cutoff index).
+\end{tightitemize}
+
+\textbf{Normative:} whenever strict semantics read any context field of $R$ (for example \code{some\_head\_commit}), the verifier \MUST{} require $\mathsf{PostAttested}(\mathcal{O};R,h,i_{\max})$ for the same anchor $(h,i_{\max})$. Otherwise strict processing \MUST{} fail closed.
+\end{definition}
+
+
+
+\subsection{Threat model, safety vs.\ liveness, and split-view handling}
+\label{sec:threat}
+
+This paper treats witness cosigning as an \emph{observable constraint}, not as a hidden trust oracle. Strict-grade verification makes a one-way trade: it prefers safety (no progress inflation from unverifiable claims) over liveness (always making progress). Concretely, the verifier may conservatively degrade to \texttt{NONSTRICT} (or refuse strict credit) whenever the observable finality evidence is missing, insufficient, or inconsistent.
+
+\begin{remark}[Failure modes and what strict-grade guarantees]
+\label{rem:witness_failures}
+Strict-grade conclusions rely on the availability of a quorum-certified head (Definition~\ref{def:finality_cert}) and the epoch-pinned witness registry (Definition~\ref{def:policy_object}). If a log server equivocates (split-view) but at least one honest witness participates in a threshold quorum, equivocation becomes detectably inconsistent with quorum signatures and/or consistency proofs; otherwise, split-views may persist \emph{as an availability failure} from the verifier's perspective.
+Gossip protocols strengthen split-view detection without requiring a global auditor \cite{ChuatGossip2015,MeiklejohnGossipAudits2020}.
+In either case, strict-grade rules are conservative: the verifier never grants strict credit without a quorum-certified head, bounded proofs, and pinned policy, and it never infers uniqueness or aggregate facts without index-membership evidence tied to that head. Thus, witness failure can reduce liveness, but cannot create strictly credited progress inflation.
+\end{remark}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{@{}p{0.34\linewidth}p{0.58\linewidth}@{}}
+\toprule
+Observable condition & Strict-grade consequence \\ \midrule
+Quorum-certified head present; bounded proofs verify & Strict acceptance may proceed (subject to all other gates). \\ \addlinespace
+Quorum signatures missing/invalid, or witness registry not pinned & Fail closed for strict use; output \texttt{NONSTRICT}/\texttt{UNDEFINED} as specified. \\ \addlinespace
+Consistency evidence missing when required by policy & Treat head lineage as uncertified; strict credit prohibited. \\ \addlinespace
+Detected inconsistency (equivocation evidence, contradicting certified heads under the same policy) & Enter contradiction handling: reject strict credit and record a diagnostic contradiction; strict use requires a consistent witness set (fail closed). \\ \bottomrule
+\end{tabular}
+\caption{Safety-first interpretation of witness/log evidence.}
+\label{tab:witness_failure_modes}
+\end{table}
+
+\section{Index root: uniqueness and bounded aggregates}
+\label{sec:index}
+
+Authenticated maps/dictionaries allow membership proofs for key--value bindings \cite{TamassiaADS2003,MelaraCONIKS2015}. Here \textsf{index\_root} commits to such a map.
+
+\subsection{Binding keys and uniqueness scope (normative)}
+
+\begin{definition}[Binding key (type-specific; normative)]
+\label{def:bindkey}
+Every receipt type includes an epoch-defined \term{binding key} determining which logical object it refers to. Examples:
+\begin{tightitemize}
+\item \code{BudgetReceipt}: key $(\textsf{epoch},\textsf{window\_id})$.
+\item \code{WindowCreateReceipt}: key $(\textsf{epoch},\textsf{window\_id})$.
+\item \code{WindowCloseReceipt}: key $(\textsf{epoch},\textsf{window\_id})$.
+\item \code{WindowRosterReceipt}: key $(\textsf{epoch},\textsf{window\_id})$.
+\item \code{AdmissionReceipt}: key $(\textsf{epoch},\textsf{window\_id},\textsf{ev\_commit})$.
+\item \code{GIDClaimReceipt}: key $(\textsf{epoch},\textsf{gid})$.
+\item \code{StageReceipt}: key $(\textsf{epoch},\textsf{window\_id},\textsf{ev\_commit},\textsf{stage\_id})$.
+\item \code{DecisionReceipt}: key $(\textsf{epoch},\textsf{window\_id},\textsf{ev\_commit})$.
+\item \code{FinalityCertReceipt}: key $(\textsf{epoch},\textsf{head\_commit})$.
+\end{tightitemize}
+The epoch \MUST{} specify which receipt types are required to be unique by binding key for strict completeness (including window-level receipts and per-candidate stage/decision receipts), and which are advisory.
+\end{definition}
+
+\begin{definition}[GID claim receipt (epoch-wide uniqueness; anti-replay)]
+\label{def:gid_claim}
+A \code{GIDClaimReceipt} binds:
+\[
+(\textsf{epoch},\textsf{gid},\textsf{window\_id},\textsf{ev\_commit}).
+\]
+Its binding key is $(\textsf{epoch},\textsf{gid})$ (Definition~\ref{def:bindkey}).
+Intuition: a \textsf{gid} is claimable for \emph{at most one} window per epoch, preventing cross-window replay (double counting) of the same work.
+
+\textbf{Strict use (fail closed otherwise):}
+for any admission receipt with \textsf{gid} and cutoff $(h,i_{\textsf{end}})=\textsf{Cutoff}(w)$,
+strict completeness \MUST{} require that letting $T=\textsf{GIDClaimReceipt}$ and $k=(\textsf{epoch},\textsf{gid})$,
+\[
+R_G := \mathsf{Select}_T(\mathcal{O};h_{\textsf{end}},i_{\textsf{end}},k)
+\]
+exists with $R_G\neq\emptyset$ (Definition~\ref{def:surface_unique}),
+and $R_G$ \MUST{} match the same \textsf{window\_id} and \textsf{ev\_commit}.
+If the claim is missing, invalid, non-unique as certified at the cutoff, or mismatched, strict completeness for that candidate \MUST{} fail closed.
+\end{definition}
+
+
+
+\begin{definition}[Index key and index value (normative)]
+\label{def:index_kv}
+Define the \term{index key} for a receipt as:
+\begin{align*}
+\textsf{ikey} := \Hash\!\Big(
+  &\LP(\DS_{\textsf{epoch}})\ \|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(\texttt{"IKEY"})))\\
+  &\|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(T)))\\
+  &\|\ \LP(\mathsf{Bytes}(\textsf{JCS}(k)))
+\Big).
+\end{align*}
+where \textsf{binding\_key\_object} is the canonical JSON encoding of the binding key for that receipt type under epoch allowlists and integer rules (Definition~\ref{def:parse_u64}).
+
+The \term{index value} \textsf{ival} is a bounded tagged byte string. A minimal fixed-width design is:
+\[
+\textsf{ival} \in \{\textsf{EMPTY},\ \textsf{UNIQUE}(\textsf{receipt\_hash}),\ \textsf{MULTI},\ \textsf{COUNT}(\textsf{u64})\},
+\]
+encoded as \code{tag || payload}, where:
+\begin{tightitemize}
+\item \textsf{EMPTY}: payload all zeros,
+\item \textsf{UNIQUE}: payload is 32-byte receipt hash,
+\item \textsf{MULTI}: payload all \code{0xFF} (or an epoch-defined constant),
+\item \textsf{COUNT}: payload begins with \textsf{U64BE}(\textsf{u64}) and remaining bytes are zero.
+\end{tightitemize}
+The epoch \MUST{} specify an injective fixed-width encoding for \textsf{ival}, and verifiers \MUST{} reject any non-canonical \textsf{ival} encoding (fail closed for strict use).
+\end{definition}
+
+\begin{assumption}[Witness-enforced index correctness (uniqueness)]
+\label{ass:index_correct}
+Witnesses \MUST{} cosign a head only if the \textsf{index\_root} corresponds to applying the epoch-defined update rule to all list leaves in order, where for each receipt whose type is ``unique-required'':
+\begin{tightitemize}
+\item if current value is \textsf{EMPTY}, update to \textsf{UNIQUE}(\textsf{receipt\_hash});
+\item otherwise (i.e., current value is \textsf{UNIQUE}(\ensuremath{\cdot}) or \textsf{MULTI}), update to \textsf{MULTI}.
+\end{tightitemize}
+Thus, \textsf{UNIQUE} in the index root is a \emph{witness-certified} certificate that the binding key occurs \emph{at most once} in the list prefix committed by that head. A verifier can mechanically check this certificate via an index-membership proof against the close-pinned head; the at-most-once meaning is contingent on witness quorum correctness.
+\end{assumption}
+
+\subsection{Index-membership proof and index-unique predicate}
+
+\begin{definition}[Index-membership proof artifact]
+\label{def:idx_proof}
+An \term{index-membership proof} binds
+$(\textsf{log\_id},\ \textsf{head\_commit},\ \textsf{ikey},\ \textsf{ival},\ \pi_{\textsf{idx}})$
+such that, under epoch-defined rules for the chosen verifiable map, the verifier can confirm that \textsf{ikey} maps to \textsf{ival} under the head's \textsf{index\_root}. The proof \MUST{} also bind \textsf{log\_id} and \textsf{head\_commit}; any mismatch \MUST{} fail closed for strict use.
+\end{definition}
+
+\begin{definition}[Index-unique predicate for a receipt at a head (normative)]
+\label{def:index_unique}
+Fix a head commit $h$.
+A receipt $X$ is \term{index-unique at $h$} iff an index-membership proof (Definition~\ref{def:idx_proof}) verifies at $h$ for \textsf{ikey} computed from $(\textsf{type},\textsf{bk})$ and returns:
+\[
+\textsf{ival}=\textsf{UNIQUE}(\textsf{X.hash}).
+\]
+If the proof is missing/invalid or returns \textsf{EMPTY} or \textsf{MULTI}, the receipt is not index-unique at $h$.
+\end{definition}
+
+\begin{remark}[Why this avoids ``uniqueness by absence'' (and what it does \emph{not} do)]
+Strict uniqueness is established by an index-membership proof into \textsf{index\_root} that returns \textsf{UNIQUE}(\textsf{receipt\_hash}). Missing competing receipts cannot make a key appear UNIQUE unless a witness-cosigned head commits to such a UNIQUE value and the proof verifies against the close-pinned head. This blocks ``weak view looks unique'' inflation. The semantic ``at most once'' meaning is witness-certified (Assumption~\ref{ass:index_correct}); it is not derived from local absence alone.
+\end{remark}
+
+\section{Windows, cutoffs, and candidate identity}
+\label{sec:windows}
+
+\subsection{Epoch specification (normative)}
+A policy epoch \MUST{} fix:
+\begin{tightitemize}
+\item \code{policy\_hash} and pinned registry roots (Definition~\ref{def:policy_object}),
+\item receipt canonicalization profile, per-type hashed-field sets, and signature rules,
+\item transparency-log parameters (including leaf hashing), witness quorum policy, proof formats/bounds,
+\item index-map proof rules, uniqueness update rule, and aggregate index entries (Assumptions~\ref{ass:index_correct} and \ref{ass:adm_count_correct}),
+\item verifier rule sets (closure inputs, strictness predicates, completeness conditions),
+\item per-currency budgets per window and per-stage caps (derived, not claimed),
+\item deterministic replay profile \textsf{DRP}, ordering rules, and failure semantics,
+\item estimator rules (p99 definition, minimum samples, deterministic tie-breaks, fail-closed under undersampling),
+\item deterministic parameter-selection rules for any hypothesis tests used in diagnostics (e.g., Appendix~\ref{sec:powerlaw_test}),
+\item maximum admissions per window $N_{\max}$ and maximum transcript bytes $T_{\max}$ (both enforceable),
+\item mandatory stage set $\mathcal{J}_{\textsf{mand}}$ and stage-id allowlist (Definition~\ref{def:mand_stages}),
+\item integer overflow/underflow rules (\MUST{} fail closed),
+\item derivation limiter parameters $G_{\max}$ and $\mathsf{DeriveGasMax}(\cdot)$ (Assumption~\ref{ass:window_gas}),
+\item any decompression or external fetching rules (\MUSTNOT{} be permitted for strict use unless explicitly bounded and pinned).
+\end{tightitemize}
+
+\subsection{Anchors and window identity}
+
+\begin{definition}[Time anchor]
+\label{def:anchor}
+A time anchor is a verifiable, log-committed tuple
+\[
+A=(\textsf{commit},\textsf{open},\textsf{window\_ms})
+\]
+with epoch-defined encodings and bounds. The epoch defines how \textsf{commit}/\textsf{open} tie to observable sources (e.g., witness-signed anchor objects). If any check fails, the anchor is invalid (fail closed).
+\end{definition}
+
+\begin{definition}[Window identity]
+\label{def:window_id}
+Given epoch id \textsf{epoch} and a valid time anchor $A$, define
+\begin{align*}
+\textsf{window\_id} := \Hash\!\left(\begin{aligned}
+&\LP(\DS_{\textsf{epoch}})\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(\texttt{"WINDOW"})))\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(\textsf{epoch})))\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{commit}))\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{open}))\\
+&\|\ \LP(\mathsf{U64BE}(\textsf{window\_ms}))
+\end{aligned}\right).
+\end{align*}
+\end{definition}
+
+\subsection{Window creation, funding, and close-pinned cutoff}
+
+\begin{definition}[Funding/escrow proof for budgets (epoch-pinned; bounded; normative)]
+\label{def:funding_proof}
+A \code{BudgetReceipt} carries \code{funding\_ref} and \code{funding\_proof} objects.
+The epoch policy \MUST{} pin a finite set of allowed \emph{funding schemes}. For each scheme, the policy \MUST{} specify:
+\begin{tightitemize}
+\item a deterministic verification procedure $\mathsf{VerifyFunding}(\textsf{window\_id},\mathbf{B},\textsf{funding\_ref},\textsf{funding\_proof})\in\{\textsf{accept},\textsf{reject}\}$,
+\item exact canonicalization/allowlists for \code{funding\_ref} and \code{funding\_proof} (JCS + bounds),
+\item any required witness-quorum signatures or pinned registry roots used by the scheme,
+\item a \emph{binding rule} that ties the proof to \textsf{epoch}, \textsf{policy\_hash}, and \textsf{window\_id} (preventing cross-window replay),
+\item a bounded-time verification guarantee (Assumption~\ref{ass:bounded_verif}).
+\end{tightitemize}
+\textbf{Normative:} strict processing \MUSTNOT{} accept any budget whose funding verification depends on unpinned external state. If $\mathsf{VerifyFunding}$ rejects or is unavailable, the window \MUST{} be graded \textbf{NONSTRICT}.
+\end{definition}
+
+
+\begin{definition}[Budget justification (escrow or funding receipt)]
+\label{def:budget_escrow}
+Fix an observation surface $\mathcal{O}$ within an epoch and a window $w$.
+Let the certified cutoff (if any) be $\textsf{Cutoff}(w)=(h_{\textsf{end}},i_{\textsf{end}})$ (Definition~\ref{def:cutoff}).
+A window budget vector $\mathbf{B}(w)$ is admissible for strict processing only if:
+\begin{tightitemize}
+\item[(i)] letting $T=\textsf{BudgetReceipt}$ and $k=(\textsf{epoch},\textsf{window\_id})$, the selected receipt
+\[
+R_B := \mathsf{Select}_T(\mathcal{O};h_{\textsf{end}},i_{\textsf{end}},k)
+\]
+exists with $R_B\neq\emptyset$ (Definition~\ref{def:surface_unique}),
+\item[(ii)] $R_B\in\mathsf{VerifiedCut}(\mathcal{O};h,i_{\textsf{end}})$ (Definition~\ref{def:cutoff_verified}),
+\item[(iii)] the epoch-pinned funding/escrow verification accepts $(\textsf{epoch},\textsf{window\_id},\mathbf{B}(w))$ (Definition~\ref{def:funding_proof}).
+\end{tightitemize}
+If any of (i)--(iii) fails (including uncertified cutoff), strict processing \MUST{} fail closed and the window grade becomes \textbf{NONSTRICT}.
+\end{definition}
+
+
+\begin{definition}[Window creation receipt]
+\label{def:window_create}
+Fix an observation surface $\mathcal{O}$ within an epoch and a window instance $w=(\textsf{epoch},\textsf{window\_id},\textsf{end\_head\_commit})$ (Definition~\ref{def:window_instance}).
+A \code{WindowCreateReceipt} binds
+\[
+(\textsf{epoch},\textsf{window\_id},A,\textsf{slot\_ms})
+\]
+and has binding key $(\textsf{epoch},\textsf{window\_id})$ (Definition~\ref{def:bindkey}).
+
+\textbf{Strict use (fail closed otherwise):}
+letting the certified cutoff (if any) be $\textsf{Cutoff}(w)=(h_{\textsf{end}},i_{\textsf{end}})$ (Definition~\ref{def:cutoff}),
+define
+\[
+R_C := \mathsf{Select}_T(\mathcal{O};h_{\textsf{end}},i_{\textsf{end}},(\textsf{epoch},\textsf{window\_id}))\quad\text{for }T=\textsf{WindowCreateReceipt}
+\]
+(Definition~\ref{def:surface_unique}).
+Strict processing \MUST{} treat the window as \term{created} only if $R_C\neq\emptyset$.
+If $R_C=\emptyset$ or the cutoff is uncertified, strict processing \MUST{} fail closed and the window grade becomes \textbf{NONSTRICT}.
+\end{definition}
+
+
+
+\begin{definition}[Window instance (close-pinned cutoff head)]
+\label{def:window_instance}
+A \term{window instance} is the tuple
+\[
+w := (\textsf{epoch},\ \textsf{window\_id},\ \textsf{end\_head\_commit}),
+\]
+intended to be evaluated under an observation surface $\mathcal{O}$.
+Let $h_{\textsf{end}}:=\textsf{end\_head\_commit}$.
+Strict processing \MUST{} require that $h_{\textsf{end}}$ is certified by at least one verified \code{FinalityCertReceipt} (Definition~\ref{def:finality_cert});
+let \textsf{tree\_size} be read from that certificate and define
+\[
+i_{\textsf{end}} := \textsf{tree\_size}-1.
+\]
+We write $\textsf{Cutoff}(w):=(h_{\textsf{end}},\ i_{\textsf{end}})$.
+
+All strict semantics in this paper are defined for a \emph{fixed} $w$; in particular, verifiers \MUST{} treat \textsf{end\_head\_commit} as an explicit input/claim parameter (not a value discovered by searching the surface).
+If the required \code{FinalityCertReceipt} for $h_{\textsf{end}}$ is unavailable in $\mathcal{O}$, strict processing \MUST{} fail closed.
+\end{definition}
+
+\begin{definition}[Strict-valid window close receipt and strict closure]
+\label{def:window_close}
+Fix a window instance $w=(\textsf{epoch},\textsf{window\_id},\textsf{end\_head\_commit})$ and an observation surface $\mathcal{O}$.
+Let $\textsf{Cutoff}(w)=(h_{\textsf{end}},i_{\textsf{end}})$ as in Definition~\ref{def:window_instance}.
+Let \textsf{tree\_size} be read from a verified \code{FinalityCertReceipt} for $h_{\textsf{end}}$ (Definition~\ref{def:finality_cert}).
+
+Let
+\[
+R_{\textsf{close}}:=\mathsf{Select}_{\textsf{WindowCloseReceipt}}(\mathcal{O};h_{\textsf{end}},i_{\textsf{end}},(\textsf{epoch},\textsf{window\_id})).
+\]
+We say the window is \term{strict-closed at $w$} iff:
+\begin{tightitemize}
+\item[(i)] $R_{\textsf{close}}\ne\emptyset$,
+\item[(ii)] $h_{\textsf{end}}$ is certified by some verified \code{FinalityCertReceipt}, and
+\item[(iii)] $R_{\textsf{close}}.\textsf{cutoff\_tree\_size}$ is present, parses under Definition~\ref{def:parse_u64}, and equals \textsf{tree\_size}.
+\end{tightitemize}
+
+\textbf{Interpretation.} Condition (iii) binds the cutoff to an explicit, receipt-carried \emph{tree-size} value, ruling out ``window grinding'' where a claimant chooses a later head that contains strictly more post-close activity.
+
+\textbf{Normative:} if strict closure fails at $w$, then the window grade \MUST{} be \textbf{NONSTRICT} and no strict credit is claimed for that window.
+\end{definition}
+
+\begin{definition}[Certified close-pinned window cutoff]
+\label{def:cutoff}
+Fix an observation surface $\mathcal{O}$ within an epoch and a window instance $w$.
+The cutoff descriptor $\textsf{Cutoff}(w)=(h_{\textsf{end}},i_{\textsf{end}})$ is \term{certified} for strict processing iff
+the close receipt checks of Definition~\ref{def:window_close} succeed in $\mathcal{O}$.
+Otherwise the cutoff is \term{uncertified} and strict credit/diagnostics for $w$ are undefined (fail closed).
+\end{definition}
+
+\begin{remark}[Why close-pinning avoids instability]
+If strictness were defined relative to a head chosen by a fork-choice that may change under additional observations, strict windows could flip from STRICT to NONSTRICT (or vice versa), enabling inflation under weakening. Close-pinning defines the cutoff head as an explicit observable object; later-discovered competing heads do not retroactively change which head the window uses.
+\end{remark}
+
+\subsection{Global evidence identity and commitments}
+
+\begin{definition}[Evidence packet and boundedness]
+\label{def:evidence_packet}
+An epoch defines an \term{evidence packet} $P$ as a bounded object consisting of allowlisted fields \emph{including an epoch-defined claim payload} plus (optionally) a bounded multiset of content-addressed blobs. Each blob identity is a hash (HEX64) and its bytes \MUST{} be present and verified for strict use. The epoch \MUST{} define a deterministic function $\mathsf{EvidenceLen}(P)\in\N$ returning the byte length used in accounting. Any mismatch between claimed and recomputed length \MUST{} fail closed for strict use.
+\end{definition}
+
+\begin{definition}[Evidence blob addressing (observable-only)]
+\label{def:evidence_blob}
+For strict use, the observation surface \MUST{} contain the canonical evidence packet bytes (under epoch-defined canonicalization), retrievable by an epoch-defined content address. A minimal design is to treat the canonical bytes \code{JCS(canon(P))} as the blob payload and to use the global evidence id \textsf{gid} (Definition~\ref{def:gid}) as its address. If the blob is absent, evidence is treated as missing (conservative fallback applies).
+\end{definition}
+
+\begin{definition}[Global evidence id]
+\label{def:gid}
+Define a canonicalization procedure for a bounded evidence packet $P$ (including referenced blobs). Define:
+\begin{align*}
+\textsf{gid}:=\Hash\!\left(\begin{aligned}
+&\LP(\DS_{\textsf{gid}})\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(\texttt{"EVIDENCE"})))\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{JCS}(\textsf{canon}(P))))
+\end{aligned}\right).
+\end{align*}
+If $P$ (or any required blob) is not present and verified, then \textsf{gid} is unverifiable in that surface.
+\end{definition}
+
+\begin{definition}[Epoch-local evidence commitment]
+\label{def:ev_commit}
+A candidate is identified within an epoch by
+\begin{align*}
+\textsf{ev\_commit}:=\Hash\!\left(\begin{aligned}
+&\LP(\DS_{\textsf{epoch}})\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(\texttt{"EVIDENCE"})))\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(\textsf{epoch})))\\
+&\|\ \LP(\mathsf{Bytes}(\textsf{gid}))
+\end{aligned}\right),
+\end{align*}
+where \textsf{gid} is the 32-byte digest from Definition~\ref{def:gid}. Strict credit \MUST{} require that \textsf{gid} is verifiable, the evidence packet is within bounds, and \textsf{ev\_commit} equals the recomputed value (fail closed otherwise).
+\end{definition}
+
+\begin{definition}[Claim hash (epoch-defined)]
+\label{def:claim_hash}
+A claim hash \code{claim\_hash} is a 32-byte digest committing to the candidate's asserted statement under an epoch-defined canonicalization of a claim payload contained in the evidence packet $P$ (Definition~\ref{def:evidence_packet}).
+Examples include: a bounded UTF-8 string, or a canonical JSON object under JCS.
+
+The epoch \MUST{} specify a deterministic rule to recompute \code{claim\_hash} from the admissible claim payload in $P$.
+For strict use, verifiers \MUST{} recompute and compare against \code{AdmissionReceipt.claim\_hash}; any mismatch \MUST{} fail closed.
+\end{definition}
+
+\section{Roster/count sealing for attempted admissions}
+\label{sec:roster_count}
+
+Strict charging is only meaningful if the verifier can determine, from \emph{observable} commitments, how many admissions were attempted and what the attempted-admission roster is.
+This section defines a head-scoped admission count and a head-scoped attempted roster, both evaluated at the strict cutoff $\textsf{Cutoff}(w)=(h_{\textsf{end}},i_{\textsf{end}})$.
+
+\subsection{Admission count key and correctness assumption}
+\label{sec:adm_count}
+
+\begin{definition}[Admission count index key]
+\label{def:adm_count_key}
+Fix a window instance $w=(\textsf{epoch},\textsf{window\_id},\textsf{end\_head\_commit})$ and write $h_{\textsf{end}}:=\textsf{end\_head\_commit}$.
+Define
+\begin{align*}
+\textsf{IKEY\_ADM\_COUNT}(w) := \Hash\!\big(
+  &\LP(\DS_{\textsf{epoch}})\ \|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(\texttt{"IKEY"})))\\
+  &\|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(\texttt{"WINDOW\_ADM\_COUNT"})))\\
+  &\|\ \LP(\mathsf{Bytes}(\textsf{JCS}(\{\textsf{epoch},\textsf{window\_id},\textsf{end\_head\_commit}\})))
+\big).
+\end{align*}
+\end{definition}
+
+\begin{assumption}[Admission count aggregate correctness]
+\label{ass:adm_count_correct}
+For each head $h$ and each \code{WindowCloseReceipt} leaf in the list of $h$ for a window $(\textsf{epoch},\textsf{window\_id})$, the index map of $h$ contains exactly one entry under the key $\textsf{IKEY\_ADM\_COUNT}(w)$ where $w=(\textsf{epoch},\textsf{window\_id},h)$.
+Its value is $\textsf{COUNT}(n)$ where $n$ equals the number of \code{AdmissionReceipt} leaves in the list of $h$ whose binding key has the form $(\textsf{epoch},\textsf{window\_id},\textsf{ev\_commit})$.
+\end{assumption}
+
+\begin{definition}[Admission count at the strict cutoff]
+\label{def:adm_count_at_cutoff}
+Let $w=(\textsf{epoch},\textsf{window\_id},\textsf{end\_head\_commit})$ and $\textsf{Cutoff}(w)=(h_{\textsf{end}},i_{\textsf{end}})$.
+Define $n_{\textsf{adm}}(w)$ as the unique integer $n$ such that
+\begin{enumerate}[leftmargin=*]
+\item $\mathsf{Select}_{\textsf{WindowCloseReceipt}}(\mathcal{O};h_{\textsf{end}},i_{\textsf{end}},(\textsf{epoch},\textsf{window\_id}))$ succeeds; and
+\item there exists a verified \code{IndexMembershipProof} for $h_{\textsf{end}}$ at key $\textsf{IKEY\_ADM\_COUNT}(w)$ with value $\textsf{COUNT}(n)$.
+\end{enumerate}
+If any condition fails, $n_{\textsf{adm}}(w)$ is undefined (fail closed).
+\end{definition}
+
+\subsection{Window roster receipt and attempted roster}
+\label{sec:roster}
+
+\begin{definition}[Window roster receipt]
+\label{def:window_roster}
+A \code{WindowRosterReceipt} binds
+\[
+(\textsf{epoch},\textsf{window\_id},\textsf{ev\_commit\_list}).
+\]
+Its binding key is $k=(\textsf{epoch},\textsf{window\_id})$.
+In strict mode, the roster is interpreted \emph{relative to} the certified cutoff head: it is obtained only via $\mathsf{Select}_{\textsf{WindowRosterReceipt}}(\mathcal{O};h_{\textsf{end}},i_{\textsf{end}},k)$.
+\end{definition}
+
+\begin{definition}[Attempted admission roster at cutoff]
+\label{def:attempted_roster}
+Let $w=(\textsf{epoch},\textsf{window\_id},\textsf{end\_head\_commit})$ and $\textsf{Cutoff}(w)=(h_{\textsf{end}},i_{\textsf{end}})$.
+Define $\mathcal{A}(w)$ as follows:
+\begin{enumerate}[leftmargin=*]
+\item If $\mathsf{Select}_{\textsf{WindowRosterReceipt}}(\mathcal{O};h_{\textsf{end}},i_{\textsf{end}},(\textsf{epoch},\textsf{window\_id}))$ fails, leave $\mathcal{A}(w)$ undefined (fail closed).
+\item Otherwise, let the selected receipt be $R_{\textsf{roster}}$ and set $\mathcal{A}(w):=R_{\textsf{roster}}.\textsf{ev\_commit\_list}$.
+\end{enumerate}
+The verifier \MUST{} reject (fail closed) if $\mathcal{A}(w)$ is defined but contains duplicates or if any element is not a valid event-commit encoding.
+\end{definition}
+
+\begin{lemma}[Roster sealing by bijection against the admission count]
+\label{lem:roster_complete}
+Assume Assumption~\ref{ass:adm_count_correct} holds.
+Fix an observation surface $\mathcal{O}$ and a strict-closed window instance $w$ with cutoff $\textsf{Cutoff}(w)=(h_{\textsf{end}},i_{\textsf{end}})$.
+Assume $n_{\textsf{adm}}(w)$ is defined (Definition~\ref{def:adm_count_at_cutoff}) and $\mathcal{A}(w)$ is defined (Definition~\ref{def:attempted_roster}) with $|\mathcal{A}(w)|=n_{\textsf{adm}}(w)$.
+Assume further that for every $\textsf{ev\_commit}\in\mathcal{A}(w)$:
+\[
+\mathsf{Select}_{\textsf{AdmissionReceipt}}(\mathcal{O};h_{\textsf{end}},i_{\textsf{end}},(\textsf{epoch},\textsf{window\_id},\textsf{ev\_commit}))\ne\emptyset.
+\]
+Then the roster entries are in bijection with the \code{AdmissionReceipt} leaves counted by $n_{\textsf{adm}}(w)$; in particular, no attempted admission can be omitted or added without violating at least one of these checks.
+\end{lemma}
+\begin{proof}
+By Definition~\ref{def:attempted_roster}, $\mathcal{A}(w)$ is duplicate-free.
+Therefore the admission-receipt selections above witness at least $|\mathcal{A}(w)|$ distinct \code{AdmissionReceipt} leaves for the window under the cutoff head.
+By Assumption~\ref{ass:adm_count_correct}, the total number of such \code{AdmissionReceipt} leaves is exactly $n_{\textsf{adm}}(w)=|\mathcal{A}(w)|$.
+Hence the roster-matched receipts exhaust the counted set, establishing a bijection.
+\end{proof}
+
+\section{Budgets, ledgers, and charging semantics}
+\label{sec:budgets}
+
+\subsection{Currencies and integer units}
+Currencies are indexed by $k\in\mathcal{K}=\{\textsf{verify},\textsf{store},\textsf{compute},\textsf{io}\}$.
+All budget quantities are nonnegative integers $B^{(k)}(w)\in \N$.
+All accept/credit transitions \MUST{} be determined without floating point. Non-integer diagnostics (ratios, percentiles) are either (i) computed deterministically as rational pairs and compared via Definition~\ref{def:frac_cmp}, or (ii) treated as \emph{advisory} and never used as acceptance predicates unless explicitly pinned as integer-threshold tests.
+
+\begin{definition}[Componentwise vector order]
+For vectors $\mathbf{a},\mathbf{b}\in\R^{|\mathcal{K}|}$, write $\mathbf{a}\cwise \mathbf{b}$ iff $a^{(k)}\le b^{(k)}$ for all $k\in\mathcal{K}$.
+\end{definition}
+
+\subsection{Ledger decomposition and invariants}
+For each window $w$ and currency $k$ we track nonnegative integers:
+\[
+b^{(k)}(w)\ (\text{headroom}),\quad
+r^{(k)}(w)\ (\text{reserved}),\quad
+s^{(k)}(w)\ (\text{charged}).
+\]
+Initial conditions at window start:
+\[
+b^{(k)}(w)\gets B^{(k)}(w),\quad r^{(k)}(w)\gets 0,\quad s^{(k)}(w)\gets 0.
+\]
+
+\begin{lemma}[Budget conservation under committed updates]
+\label{lem:budget_conservation}
+If initially $b^{(k)}+r^{(k)}+s^{(k)}=B^{(k)}$ and all updates enforce nonnegativity and overflow checks (fail closed), then for all committed updates within window $w$:
+\[
+b^{(k)}(w)+r^{(k)}(w)+s^{(k)}(w) = B^{(k)}(w)\qquad\forall k.
+\]
+\end{lemma}
+\begin{proof}
+Reservation moves units $b\rightarrow r$, charging moves $r\rightarrow s$, and release moves $r\rightarrow b$. Each move preserves the sum componentwise. Fail-closed arithmetic prevents wraparound.
+\end{proof}
+
+\begin{definition}[Committed viability region]
+\label{def:V}
+An epoch defines constants:
+\[
+\rho_k\in(0,1],\qquad b^{(k)}_{\min}\in\N,\qquad \alpha_k\ge 0,\qquad \Sigma_{\min}\ge 0.
+\]
+The viability region $\mathcal{V}(w)$ is the set of states satisfying, for all $k$:
+\begin{align*}
+&b^{(k)}, r^{(k)}, s^{(k)} \in \N,\qquad b^{(k)}+r^{(k)}+s^{(k)}=B^{(k)}(w),\\
+&r^{(k)}\le \rho_k B^{(k)}(w),\qquad b^{(k)}\ge b^{(k)}_{\min},
+\end{align*}
+and the global headroom floor:
+\[
+\sum_{k\in\mathcal{K}}\alpha_k\,b^{(k)}\ \ge\ \Sigma_{\min}.
+\]
+Any transition that would leave $\mathcal{V}(w)$ \MUST{} fail closed for strict operation; derived transcripts \MUST{} reason-code \code{window\_viability\_fail} and set window grade to \textbf{NONSTRICT} (Definition~\ref{def:grade}).
+\end{definition}
+
+\subsection{Epoch-fixed interface bounds}
+\begin{definition}[Epoch-fixed interface bounds]
+\label{def:bounds}
+An epoch \MUST{} define finite limits bounding verification costs, including at minimum:
+\begin{tightitemize}
+\item maximum evidence length $L_{\max}$ and strict bounds on nesting, arrays, and objects,
+\item maximum counts of receipts, signatures, witnesses, and proofs used for strict derivation,
+\item maximum proof lengths and bounded decompression if allowed (otherwise decompression \MUSTNOT{} be used for strict),
+\item maximum admissions per window $N_{\max}$ (checked via roster/count sealing),
+\item an enforceable resource limiter (VM gas, OS quotas) for replay and for whole-window derivation (Assumption~\ref{ass:window_gas}).
+\end{tightitemize}
+Any violation \MUST{} fail closed and be reason-coded.
+\end{definition}
+
+\subsection{Reservation, metering, cap fallback, and conservative resolution}
+\label{sec:charging}
+
+\begin{definition}[Length-only derived maximum exposure]
+\label{def:derive_max}
+Let $L$ be the evidence byte length recomputed from the verified evidence packet (Definition~\ref{def:evidence_packet}). The epoch defines a deterministic function
+\[
+\mathsf{DeriveMaxFromLen}(L;\textsf{policy\_hash})\in\N^{|\mathcal{K}|}
+\]
+depending only on $L$ and epoch constants and running in bounded time.
+\end{definition}
+
+\begin{definition}[Mandatory stages and stage-id allowlist (normative)]
+\label{def:mand_stages}
+The epoch defines:
+\begin{tightitemize}
+\item a finite allowlist of stage identifiers $\mathcal{J}_{\textsf{allow}}$ (strings with bounded length and ASCII-only or explicitly pinned normalization),
+\item a finite ordered list of mandatory stages $\mathcal{J}_{\textsf{mand}}\subseteq \mathcal{J}_{\textsf{allow}}$,
+\item deterministic ordering of $\mathcal{J}_{\textsf{mand}}$ for transcript layout.
+\end{tightitemize}
+Stage receipts whose \code{stage\_id} is not in $\mathcal{J}_{\textsf{allow}}$ \MUST{} fail closed for strict use.
+\end{definition}
+
+\begin{definition}[Per-stage prepaid cap]
+\label{def:stagecap}
+For stage id $j\in\mathcal{J}_{\textsf{mand}}$ the epoch defines
+\[
+\mathsf{StageCap}(j,L;\textsf{policy\_hash})\in\N^{|\mathcal{K}|},
+\]
+computed in bounded time from $j$, $L$, and epoch constants.
+Any receipt field claiming a cap \MUST{} match $\mathsf{StageCap}$ (fail closed otherwise).
+\end{definition}
+
+\begin{definition}[Cap-schedule breakpoints (policy-pinned)]
+\label{def:cap_breakpoints}
+An epoch \MUST{} pin a finite nondecreasing list of integers
+\[
+\mathcal{B}=\{0=b_0<b_1<\cdots<b_m=L_{\max}\}\subseteq [0,L_{\max}]
+\]
+such that for each mandatory stage $j$ and each currency component, the functions
+$L\mapsto \mathsf{StageCap}(j,L;\textsf{policy\_hash})$ and $L\mapsto \mathsf{DeriveMaxFromLen}(L;\textsf{policy\_hash})$
+are constant on each half-open interval $[b_\ell,b_{\ell+1})$ and take their interval value at $b_\ell$.
+\end{definition}
+
+\begin{lemma}[Boundary checking suffices for cap consistency]
+\label{lem:cap_boundary_suffices}
+Assume Definition~\ref{def:cap_breakpoints}. If an inequality of the form
+$F(L)\ \cwise\ G(L)$
+holds for all $L\in\mathcal{B}$, where $F$ and $G$ are piecewise-constant and constant on each $[b_\ell,b_{\ell+1})$, then it holds for all integers $L\in[0,L_{\max}]$.
+\end{lemma}
+\begin{proof}
+Fix any integer $L\in[0,L_{\max}]$. Then $L\in[b_\ell,b_{\ell+1})$ for some $\ell$, so $F(L)=F(b_\ell)$ and $G(L)=G(b_\ell)$. The inequality at $b_\ell$ implies it at $L$.
+\end{proof}
+
+\begin{definition}[Per-candidate cap consistency (verifier-checkable; boundary + realized checks)]
+\label{def:cap_consistency}
+For an evidence length proxy $L^\uparrow\in[0,L_{\max}]$, define:
+\[
+\mathsf{CapSum}(L^\uparrow):=\sum_{j\in \mathcal{J}_{\textsf{mand}}} \mathsf{StageCap}(j,L^\uparrow;\textsf{policy\_hash})
+\quad\in\N^{|\mathcal{K}|}.
+\]
+The policy is \term{cap-consistent at $L^\uparrow$} iff:
+\[
+\mathsf{CapSum}(L^\uparrow)\ \cwise\ \mathsf{DeriveMaxFromLen}(L^\uparrow;\textsf{policy\_hash}).
+\]
+
+\textbf{Normative (finite check set):}
+For strict derivation, verifiers \MUST{} check:
+\begin{tightitemize}
+\item global cap consistency on all breakpoints $L\in\mathcal{B}$ once per epoch policy (Lemma~\ref{lem:cap_boundary_suffices}), and
+\item per-window realized checks for each conservative length $L^\uparrow(\textsf{cand})$ encountered during derivation.
+\end{tightitemize}
+If any check fails, derived transcripts \MUST{} output reason code \code{window\_policy\_inconsistent} and mark the window \textbf{NONSTRICT}.
+\end{definition}
+
+\begin{definition}[Deterministic metered execution profile]
+\label{def:drp}
+An epoch defines a deterministic execution profile \textsf{DRP} for metered stages:
+\begin{tightitemize}
+\item pinned VM/verifier version and syscall surface,
+\item deterministic numeric semantics (integer-only or pinned rounding; floating point \MUSTNOT{} affect decisions),
+\item deterministic gas accounting rules,
+\item deterministic transcript format and transcript hashing.
+\end{tightitemize}
+\end{definition}
+
+\begin{definition}[Stage transcript core and transcript hash (normative)]
+\label{def:stage_transcript}
+For a candidate stage execution under the deterministic profile \textsf{DRP} (Definition~\ref{def:drp}), define a \term{stage transcript core} object $T$ that is a bounded, canonical (JCS) record sufficient to deterministically reproduce the stage result. The epoch \MUST{} pin the exact fields of $T$; minimally it \MUST{} bind:
+\begin{tightitemize}
+\item \textsf{epoch}, \textsf{window\_id}, \textsf{ev\_commit}, and \textsf{stage\_id},
+\item deterministic input commitments used by replay (e.g., claim/evidence commitments and any pinned dependency commits),
+\item an exit/status code and any acceptance-relevant outputs (as commitments, not raw unbounded blobs),
+\item a bounded streaming trace commitment (e.g., a hash chain root) sufficient to audit control flow under \textsf{DRP},
+\item the metered usage vector $\mathbf{gas}$ computed by the pinned gas-accounting rules.
+\end{tightitemize}
+
+The \term{transcript hash} is:
+\[
+\textsf{transcript\_hash}:=\Hash\big(\LP(\DS_{\textsf{epoch}})\|\LP(\mathsf{Bytes}(\textsf{UTF8}(\texttt{"STAGE\_TRANSCRIPT\_v1"})))\|\LP(\mathsf{Bytes}(\textsf{JCS}(T)))\big).
+\]
+\textbf{Normative:} verifiers \MUST{} recompute \textsf{transcript\_hash} from replay under \textsf{DRP}. A \code{StageReceipt} is replay-valid only if the recomputed transcript hash matches the receipt field \code{transcript\_hash} (Definition~\ref{def:meter_valid}).
+\end{definition}
+
+
+
+\begin{definition}[Replay-valid stage receipt]
+\label{def:meter_valid}
+Fix cutoff $\textsf{Cutoff}(w)=(\textsf{end\_head\_commit}, i_{\textsf{end}})$.
+A \code{StageReceipt} for stage $j$ is \term{replay-valid at cutoff} iff:
+\begin{tightitemize}
+\item the receipt is verified and index-unique at $\textsf{end\_head\_commit}$ (Definition~\ref{def:index_unique}),
+\item the receipt is inclusion-proved into \textsf{end\_head\_commit} at leaf index $\le i_{\textsf{end}}$ (Definition~\ref{def:incl}),
+\item the verifier can deterministically replay the stage under \textsf{DRP} using only cutoff artifacts and pinned dependencies and obtain the same transcript hash (Definition~\ref{def:stage_transcript}) and metered usage recorded in the receipt, with
+\[
+\mathbf{gas}\ \cwise\ \mathsf{StageCap}(j,L^\uparrow;\textsf{policy\_hash}),
+\]
+where $L^\uparrow$ is the conservative length for the candidate (Definition~\ref{def:conservative_resolution}).
+\end{tightitemize}
+If any condition fails, the stage is not replay-valid for strict metered charging (cap fallback applies).
+\end{definition}
+
+\begin{definition}[Conservative resolution rule (deterministic)]
+\label{def:conservative_resolution}
+Fix a roster entry $\textsf{ev\_commit}\in\mathcal{A}(w)$ and cutoff $\textsf{Cutoff}(w)=(\textsf{end\_head\_commit}, i_{\textsf{end}})$.
+For any missingness/invalidity/non-uniqueness (as certified by the index root or by bounded verification), the epoch defines deterministic conservative choices:
+\begin{tightitemize}
+\item \textbf{Conservative length} $L^\uparrow$: if a verified admission receipt exists, is index-unique at cutoff, is inclusion-proved at leaf index $\le i_{\textsf{end}}$, the evidence packet is present/verified, and the receipt field \code{evidence\_len} equals $\mathsf{EvidenceLen}(P)$, then $L^\uparrow=\mathsf{EvidenceLen}(P)$; else $L^\uparrow:=L_{\max}$.
+\item \textbf{Conservative charging}: any missing/invalid/non-unique/non-included or replay-invalid stage receipt is charged at \emph{cap} computed from $L^\uparrow$.
+\item \textbf{Strict completeness}: any missing/invalid/non-unique/non-included required receipt sets \code{complete=false}.
+\end{tightitemize}
+These rules are required to be deterministic and anti-hiding (depend only on close-pinned cutoff artifacts, their proofs, and epoch constants).
+\end{definition}
+
+\begin{definition}[Reservation at admission]
+\label{def:reserve}
+For each rostered candidate $\textsf{ev\_commit}\in\mathcal{A}(w)$, define $L^\uparrow$ by Definition~\ref{def:conservative_resolution} and:
+\[
+\mathbf{u}^{\max}:=\mathsf{DeriveMaxFromLen}(L^\uparrow;\textsf{policy\_hash}).
+\]
+Reservation commits the update:
+\[
+\mathbf{r}(w)\leftarrow \mathbf{r}(w)+\mathbf{u}^{\max},\qquad
+\mathbf{b}(w)\leftarrow \mathbf{b}(w)-\mathbf{u}^{\max},
+\]
+failing closed for strict operation if the resulting state leaves $\mathcal{V}(w)$.
+\end{definition}
+
+\begin{definition}[Charged spend for a stage (metered-or-cap)]
+\label{def:charged_stage}
+For stage $j$, let $\mathbf{cap}:=\mathsf{StageCap}(j,L^\uparrow;\textsf{policy\_hash})$.
+Define charged spend:
+\[
+\mathbf{chg}:=
+\begin{cases}
+\mathbf{gas} & \text{if the stage receipt is replay-valid at cutoff (Definition~\ref{def:meter_valid})},\\
+\mathbf{cap} & \text{otherwise}.
+\end{cases}
+\]
+Commit:
+\[
+\mathbf{s}(w)\leftarrow \mathbf{s}(w)+\mathbf{chg},\qquad
+\mathbf{r}(w)\leftarrow \mathbf{r}(w)-\mathbf{chg}.
+\]
+Underflow/overflow \MUST{} fail closed for strict.
+\end{definition}
+
+\begin{lemma}[Cap consistency prevents candidate reserve underflow under fallback]
+\label{lem:cap_prevents_underflow}
+Fix a candidate with conservative length $L^\uparrow$. If cap consistency holds at $L^\uparrow$ (Definition~\ref{def:cap_consistency}) and replay-valid metered spends satisfy $\mathbf{gas}\cwise\mathbf{cap}$ (Definition~\ref{def:meter_valid}), then the candidate-local reserve cannot underflow when charging each mandatory stage using Definition~\ref{def:charged_stage}.
+\end{lemma}
+\begin{proof}
+Stagewise charge is always $\cwise \mathbf{cap}$. Summing over mandatory stages yields total charged
+$\cwise \mathsf{CapSum}(L^\uparrow)\cwise \mathsf{DeriveMaxFromLen}(L^\uparrow)$ by cap consistency. The initial reserve equals $\mathsf{DeriveMaxFromLen}(L^\uparrow)$, so subtracting cannot underflow.
+\end{proof}
+
+\begin{definition}[Deterministic release]
+\label{def:release}
+At candidate finalization, release remaining reserve:
+\[
+\mathbf{released}:=\mathbf{r}_{\textsf{cand}},\qquad
+\mathbf{b}(w)\leftarrow\mathbf{b}(w)+\mathbf{released},\quad
+\mathbf{r}(w)\leftarrow\mathbf{r}(w)-\mathbf{released}.
+\]
+The derived per-candidate accounting \MUST{} satisfy (componentwise):
+\[
+\mathbf{u}^{\max}=\mathrm{charged}+\mathrm{released}.
+\]
+\end{definition}
+
+\section{Deterministic window finalization as a derived transcript}
+\label{sec:derive}
+
+\subsection{Derivation order and window eligibility}
+
+\begin{definition}[Derivation order (anti-hiding, order-salt)]
+\label{def:derive_order}
+Within a window cutoff, derivation \MUST{} process rostered candidates in deterministic order given by:
+\[
+\textsf{order\_key}(\textsf{ev\_commit})
+:=
+\Hash\!\left(
+\LP(\DS_{\textsf{epoch}})\|\LP(\mathsf{Bytes}(\textsf{UTF8}(\texttt{"ORDER"})))\|\LP(\mathsf{Bytes}(\textsf{ev\_commit}))
+\right),
+\]
+sorted ascending by \textsf{order\_key}, tie-broken lexicographically on raw digest bytes of \textsf{ev\_commit}. Locale/Unicode-sensitive comparisons are forbidden.
+This ordering is computable from the roster alone, so missingness cannot change processing order.
+\end{definition}
+
+\begin{definition}[Streaming transcript accounting and memory safety (normative)]
+\label{def:streaming_len}
+To prevent buffer overrun or unbounded allocation, strict derivation \MUST{} implement transcript construction as a streaming process with a deterministic byte counter.
+The epoch \MUST{} pin a canonical serialization for $T_w$ and a deterministic incremental accounting rule
+\[
+\mathsf{AppendCost}(\textsf{field\_delta};\textsf{policy\_hash})\in\N
+\]
+such that a running counter $\ell$ updated by $\ell\leftarrow \ell+\mathsf{AppendCost}(\cdot)$ upper-bounds the final $\mathsf{TranscriptLen}(T_w)$.
+If at any point $\ell>T_{\max}$ or any internal buffer bound is exceeded during parsing/serialization (including intermediate staging buffers), derivation \MUST{} fail closed immediately, output reason code \code{window\_memory\_safety\_fail}, and set window grade to \textbf{NONSTRICT}.
+\end{definition}
+
+\begin{definition}[Transcript byte length (normative)]
+\label{def:transcript_len}
+The epoch \MUST{} define a deterministic size function $\mathsf{TranscriptLen}(T_w)\in\N$ computed from the canonical serialization used by \textsf{JCS} in Definition~\ref{def:transcript_root}. Strict derivation \MUST{} fail closed if $\mathsf{TranscriptLen}(T_w)>T_{\max}$.
+(Implementations \MUST{} additionally enforce Definition~\ref{def:streaming_len} during construction.)
+\end{definition}
+
+\begin{definition}[Window eligibility grades]
+\label{def:grade}
+A window receives a derived transcript grade:
+\begin{tightitemize}
+\item \textbf{STRICT}: created (Definition~\ref{def:window_create}), has an admissible budget (Definition~\ref{def:budget_escrow}), and has a certified close-pinned cutoff (Definition~\ref{def:cutoff}), and both (i) an index-certified admission count $n_{\textsf{adm}}(w)$ is defined and $\le N_{\max}$, and (ii) $\mathcal{A}(w)$ is defined by a verified cutoff-bound \code{WindowRosterReceipt} (Definition~\ref{def:attempted_roster}) with $|\mathcal{A}(w)|=n_{\textsf{adm}}(w)$ and each roster entry has a cutoff-unique \code{AdmissionReceipt} (roster/count sealing; Lemma~\ref{lem:roster_complete}), and derivation completes without violating ledger viability $\mathcal{V}(w)$ (Definition~\ref{def:V}), without exceeding transcript bound $T_{\max}$ (Definitions~\ref{def:streaming_len} and \ref{def:transcript_len}), without violating cap consistency (Definition~\ref{def:cap_consistency}), and without exceeding the pinned derivation limiter $G_{\max}$ (Assumption~\ref{ass:window_gas}).
+\item \textbf{NONSTRICT}: otherwise.
+\end{tightitemize}
+\textbf{Normative:} Strict progress credit and strict diagnostics are defined only for \textbf{STRICT} windows. For \textbf{NONSTRICT} windows, strict progress credit is defined as $0$ and strict diagnostics are undefined (fail closed).
+\end{definition}
+
+\subsection{Derived transcript schema (high-level)}
+
+\begin{definition}[Window derived transcript]
+\label{def:transcript}
+Given a window $w$ and a certified cutoff (Definition~\ref{def:cutoff}), the derived transcript $T_w$ is a deterministic object containing:
+\begin{tightitemize}
+\item cutoff descriptor $(\textsf{end\_head\_commit}, i_{\textsf{end}})$ and window grade (Definition~\ref{def:grade}),
+\item window budgets and final ledger state $(\mathbf{b},\mathbf{r},\mathbf{s})$ when grade is \textbf{STRICT},
+\item $n_{\textsf{adm}}(w)$ and the roster list when grade is \textbf{STRICT},
+\item for each rostered candidate: per-stage charge status (\code{metered} or \code{cap\_fallback}), uniqueness statuses, completeness flag, verdict, reason codes, and closure hash (if complete).
+\end{tightitemize}
+All fields are either verified copies or deterministic functions of verified bytes and epoch constants.
+\end{definition}
+
+\begin{definition}[Transcript root (optional binding; non-circular)]
+\label{def:transcript_root}
+Define:
+\[
+\textsf{root}(T_w):=\Hash\big(\LP(\DS_{\textsf{epoch}})\|\LP(\mathsf{Bytes}(\textsf{UTF8}(\texttt{"DERIVE"})))\|\LP(\mathsf{Bytes}(\textsf{JCS}(T_w)))\big).
+\]
+If a \code{WindowCloseReceipt} includes \code{transcript\_root}, verifiers \MUST{} recompute and compare (fail closed for strict use on mismatch). To avoid circularity, $T_w$ \MUSTNOT{} include \code{transcript\_root} as an input field; it may include the cutoff fields copied from \code{WindowCloseReceipt}.
+\end{definition}
+
+\subsection{Derivation algorithm (ledger-consistent, conservative, memory-safe, gas-bounded)}
+
+\begin{remark}[Algorithm status relative to the theory/spec boundary]
+Layer~I requires that the derived transcript be a deterministic function of the certified cutoff, verified artifacts, and the epoch policy. Algorithm~\ref{alg:derive_window} is a reference procedure that realizes those semantics. Implementations may use different internal structure provided the observable transcript output and fail-closed triggers match the epoch-pinned semantics.
+\end{remark}
+
+\begin{algorithm}[H]
+\caption{DeriveWindowTranscript (monotone under weakening; close-pinned cutoff; roster/count sealed; streaming + gas bounded)}
+\label{alg:derive_window}
+\begin{algorithmic}[1]
+\footnotesize
+\Procedure{DeriveWindowTranscript}{$w,\ \mathcal{O},\ \textsf{policy\_hash}$}
+  \State grade $\gets$ \texttt{NONSTRICT}
+  \State $\ell \gets 0$ \Comment{streaming transcript counter (Definition~\ref{def:streaming_len})}
+  \State $g \gets 0$ \Comment{gas/limiter counter (Assumption~\ref{ass:window_gas})}
+  \State Parse $(h_{\textsf{end}}, i_{\textsf{end}})\gets \textsf{Cutoff}(w)$ (Definition~\ref{def:cutoff})
+
+  \State \Comment{Step 1: certify the close-pinned cutoff (index-unique at cutoff)}
+  \State $R_C \gets \mathsf{Select}_T(\mathcal{O};h_{\textsf{end}},i_{\textsf{end}},(\textsf{epoch},\textsf{window\_id}))$ for $T=\textsf{WindowCloseReceipt}$
+  \If{$R_C=\emptyset$} \Return transcript with reason \code{window\_missing\_close} \EndIf
+  \If{no verified \code{FinalityCertReceipt} for $h_{\textsf{end}}$} \Return transcript with reason \code{window\_missing\_finality} \EndIf
+  \If{$i_{\textsf{end}} \ne \textsf{tree\_size}-1$ from that certificate} \Return transcript with reason \code{window\_policy\_inconsistent} \EndIf
+
+  \State Parse $\textsf{ts} \gets$ (that certificate's \code{head.tree\_size}) as U64 (Definition~\ref{def:parse_u64})
+  \If{\code{cutoff\_tree\_size} missing in $R_C$} \Return transcript with reason \code{window\_cutoff\_size\_missing} \EndIf
+  \If{$R_C.\textsf{cutoff\_tree\_size} \ne \textsf{ts}$} \Return transcript with reason \code{window\_cutoff\_size\_mismatch} \EndIf
+
+  \State \Comment{Step 2: select transcript-critical window receipts only via index-unique selection at cutoff}
+  \State $R_W \gets \mathsf{Select}_T(\mathcal{O};h_{\textsf{end}},i_{\textsf{end}},(\textsf{epoch},\textsf{window\_id}))$ for $T=\textsf{WindowCreateReceipt}$
+  \If{$R_W=\emptyset$} \Return transcript with reason \code{window\_missing\_create} \EndIf
+
+  \State $R_B \gets \mathsf{Select}_T(\mathcal{O};h_{\textsf{end}},i_{\textsf{end}},(\textsf{epoch},\textsf{window\_id}))$ for $T=\textsf{BudgetReceipt}$
+  \If{$R_B=\emptyset$} \Return transcript with reason \code{window\_missing\_budget} \EndIf
+
+  \State Compute $n_{\textsf{adm}}(w)$ via an index-membership proof at $h_{\textsf{end}}$ (Definition~\ref{def:adm_count_at_cutoff})
+  \If{$n_{\textsf{adm}}(w)$ undefined} \Return transcript with reason \code{window\_adm\_count\_undef} \EndIf
+  \If{$n_{\textsf{adm}}(w) > N_{\max}$} \Return transcript with reason \code{window\_adm\_count\_too\_large} \EndIf
+
+  \State Define $\mathcal{A}(w)$ via a cutoff-bound \code{WindowRosterReceipt} (Definition~\ref{def:attempted_roster})
+  \If{$\mathcal{A}(w)$ undefined} \Return transcript with reason \code{window\_roster\_missing} \EndIf
+  \If{$|\mathcal{A}(w)| \ne n_{\textsf{adm}}(w)$} \Return transcript with reason \code{window\_roster\_len\_mismatch} \EndIf
+
+  \State \Comment{Step 3: stream candidates in canonical roster order and accumulate strict-only credit}
+  \ForAll{$\textsf{ev\_commit}\in\mathcal{A}(w)$ in canonical order}
+     \State Update $(\ell,g)$ for bounded parsing/verification
+     \If{$\ell > T_{\max}$} \Return transcript with reason \code{window\_memory\_safety\_fail} \EndIf
+     \If{$g > G_{\max}$} \Return transcript with reason \code{window\_gas\_exceeded} \EndIf
+      \State $R_A \gets \mathsf{Select}_T(\mathcal{O};h_{\textsf{end}},i_{\textsf{end}},(\textsf{epoch},\textsf{window\_id},\textsf{ev\_commit}))$ for $T=\textsf{AdmissionReceipt}$
+      \If{$R_A=\emptyset$} \Return transcript with reason \code{window\_roster\_bijection\_fail} \EndIf
+      \State Accumulate strict-only credit according to Definition~\ref{def:proginc}
+  \EndFor
+  \State grade $\gets$ \texttt{STRICT}
+  \State \Return transcript + grade + $\Delta Y(w)$
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Reason-code discipline (normative taxonomy)}
+\label{sec:reasons}
+
+\begin{definition}[Reason-code taxonomy (normative)]
+\label{def:reasons}
+To prevent hidden degrees of freedom, derived transcripts \MUST{} use a finite epoch-defined allowlist of reason codes, each with a deterministic trigger predicate. A minimal allowlist includes:
+\begin{tightitemize}
+\item \code{window\_missing\_create}, \code{window\_create\_nonunique}, \code{window\_missing\_budget}, \code{window\_budget\_nonunique}, \code{window\_missing\_close}, \code{window\_close\_nonunique}, \code{window\_cutoff\_size\_missing}, \code{window\_cutoff\_size\_mismatch}, \code{window\_missing\_finality},
+\item \code{window\_policy\_inconsistent}, \code{window\_adm\_count\_undef}, \code{window\_adm\_count\_too\_large}, \code{window\_roster\_missing}, \code{window\_roster\_len\_mismatch}, \code{window\_roster\_bijection\_fail},
+\item \code{window\_viability\_fail}, \code{window\_memory\_safety\_fail}, \code{window\_gas\_exceeded},
+\item \code{cand\_admission\_nonunique}, \code{cand\_gid\_claim\_missing}, \code{cand\_gid\_claim\_nonunique}, \code{cand\_gid\_claim\_mismatch}, \code{cand\_evidence\_missing}, \code{cand\_evidence\_len\_mismatch}, \code{cand\_ev\_commit\_mismatch},
+\item \code{stage\_missing}, \code{stage\_nonunique}, \code{stage\_replay\_invalid}, \code{stage\_cap\_violation},
+\item \code{decision\_missing}, \code{decision\_nonunique}, \code{decision\_closure\_mismatch},
+\item \code{ledger\_arithmetic\_fail}.
+\end{tightitemize}
+Any non-allowlisted code \MUST{} be rejected for strict use.
+\end{definition}
+
+\section{Completion semantics: closure, strict credit, and non-inflation}
+\label{sec:closure}
+
+\subsection{Decision commit and closure hash (non-circular)}
+
+\begin{definition}[Decision commit (non-circular; verifier-checkable)]
+\label{def:decision_commit}
+Define \textsf{decision\_commit} as a hash of decision fields excluding \code{hash} and excluding \code{closed\_evidence\_hash}:
+\[
+\textsf{decision\_commit}:=\Hash\!\left(\begin{aligned}
+  &\LP(\DS_{\textsf{epoch}})\\
+  &\|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(\texttt{"DECISION\_COMMIT"})))\\
+  &\|\ \LP(\mathsf{Bytes}(\textsf{JCS}(\textsf{decision\_fields\_no\_hash\_no\_closure})))
+\end{aligned}\right).
+\]
+\textbf{Normative:} The epoch \MUST{} specify the exact allowlisted decision fields contributing to \textsf{decision\_commit}, and it \MUST{} include at least \code{epoch}, \code{window\_id}, \code{ev\_commit}, \code{verdict}, and \code{reason\_code}. Verifiers \MUST{} recompute and fail closed on mismatch.
+\end{definition}
+
+\begin{definition}[Closure input vector]
+\label{def:closure_inputs}
+For a candidate $(w,\textsf{ev\_commit})$ with cutoff $\textsf{Cutoff}(w)=(\textsf{end\_head\_commit}, i_{\textsf{end}})$, define the closure input tuple:
+\begin{align*}
+\mathcal{C}(w,\textsf{ev\_commit}) := (&\textsf{policy\_hash},\ \textsf{epoch},\ \textsf{window\_id},\ \textsf{end\_head\_commit},\ i_{\textsf{end}},\\
+&\textsf{gid},\ \textsf{ev\_commit},\ \textsf{claim\_hash},\ \textsf{AdmissionReceipt.hash},\\
+&(\textsf{stage\_id}_\ell,\ \textsf{StageReceipt.hash}_\ell,\ \textsf{transcript\_hash}_\ell)_{\ell=1}^m,\\
+&\textsf{decision\_commit}).
+\end{align*}
+If any required component is missing/invalid/non-unique or not inclusion-proved within cutoff, $\mathcal{C}$ is undefined.
+\end{definition}
+
+\begin{definition}[Closed evidence hash (verifier-computable)]
+\label{def:closed_hash}
+If $\mathcal{C}$ is defined, set:
+\[
+\textsf{closed\_evidence\_hash}:=\Hash\big(
+\LP(\DS_{\textsf{epoch}})\|\LP(\mathsf{Bytes}(\textsf{UTF8}(\texttt{"CLOSURE"})))\|\LP(\mathsf{Bytes}(\textsf{JCS}(\mathcal{C})))
+\big).
+\]
+Any \code{DecisionReceipt.closed\_evidence\_hash} \MUST{} equal this value for strict completeness.
+\end{definition}
+
+\subsection{Strict completeness (close-pinned, index-unique)}
+
+
+\begin{definition}[Canonical candidate record at cutoff (deterministic; index-unique)]
+\label{def:cand_record}
+Fix an observation surface $\mathcal{O}$ and a window instance $w$ with certified cutoff $\textsf{Cutoff}(w)=(h_{\textsf{end}},i_{\textsf{end}})$ (Definition~\ref{def:cutoff}).
+For a rostered candidate $\textsf{ev\_commit}\in\mathcal{A}(w)$, define the canonical \term{candidate record}
+\[
+R := \mathsf{Rec}(\mathcal{O};w,\textsf{ev\_commit})
+\]
+as the tuple of transcript-critical receipts and derived values selected \emph{only} via $\mathsf{Select}_T(\mathcal{O};h_{\textsf{end}},i_{\textsf{end}},\cdot)$ (Definition~\ref{def:surface_unique}) at the cutoff:
+\begin{tightitemize}
+\item the unique \code{AdmissionReceipt} for key $(\textsf{epoch},\textsf{window\_id},\textsf{ev\_commit})$,
+\item if \code{gid} is to be made epoch-verifiable, the unique \code{GIDClaimReceipt} for key $(\textsf{epoch},\textsf{gid})$,
+\item for each epoch-required stage id, the unique replay-valid \code{StageReceipt} (Definition~\ref{def:meter_valid}),
+\item the unique \code{DecisionReceipt} for key $(\textsf{epoch},\textsf{window\_id},\textsf{ev\_commit})$.
+\end{tightitemize}
+The record additionally includes the epoch-defined canonical evidence packet $P$ addressed by \code{gid} when strict use requires it (Definitions~\ref{def:evidence_blob}--\ref{def:ev_commit}).
+If any required selection, inclusion proof, uniqueness proof, replay check, or boundedness check fails, then $\mathsf{Rec}(\mathcal{O};w,\textsf{ev\_commit})$ is undefined (fail closed).
+\end{definition}
+
+\begin{definition}[Strict completeness (close-pinned, dependency-closed)]
+\label{def:complete_strict}
+Fix an observation surface $\mathcal{O}$ and a window instance $w$ with certified cutoff $\textsf{Cutoff}(w)=(h_{\textsf{end}},i_{\textsf{end}})$ (Definitions~\ref{def:window_instance} and \ref{def:cutoff}).
+Let $\textsf{ev\_commit}\in\mathcal{A}(w)$ be a rostered candidate (Definition~\ref{def:attempted_roster}).
+
+We say $\textsf{ev\_commit}$ is \term{strict-complete} (w.r.t.\ $w$ and $\mathcal{O}$) iff the canonical record
+$R:=\mathsf{Rec}(\mathcal{O};w,\textsf{ev\_commit})$ exists (Definition~\ref{def:cand_record}) and all of the following hold:
+\begin{tightitemize}
+\item[(i)] (Evidence dependency closure) letting $R.\textsf{adm}$ be the selected \code{AdmissionReceipt} and $P$ be its addressed evidence packet, $P$ is present and verified and satisfies
+$\mathsf{EvidenceLen}(P)=R.\textsf{adm}.\textsf{evidence\_len}$ and $\textsf{ev\_commit}$ equals the recomputed commitment (Definitions~\ref{def:evidence_packet}--\ref{def:ev_commit}).
+Moreover, \code{claim\_hash} recomputation from the claim payload in $P$ matches $R.\textsf{adm}.\textsf{claim\_hash}$ (Definition~\ref{def:claim_hash}).
+\item[(ii)] (Epoch verifiable identity, if required) if $R.\textsf{adm}.\textsf{gid}$ is present and the epoch requires \code{gid} to be verifiable, then the selected \code{GIDClaimReceipt} exists and is valid (Definition~\ref{def:gid_claim}).
+\item[(iii)] (Mandatory stages closed) for each epoch-required stage id, the corresponding selected \code{StageReceipt} is replay-valid at the cutoff (Definition~\ref{def:meter_valid}).
+\item[(iv)] (Closure integrity) the selected \code{DecisionReceipt} is replay-valid at the cutoff and its \code{closed\_evidence\_hash} matches the recomputed value from the canonical closure inputs (Definitions~\ref{def:closure_inputs}--\ref{def:closed_hash}).
+\end{tightitemize}
+If any check fails, strict completeness fails closed.
+\end{definition}
+
+\subsection{Accept predicates (minimal, mechanically checkable)}
+
+\begin{definition}[Verify predicate (epoch-defined; mechanically checkable)]
+\label{def:verify_pred}
+Let $\mathsf{Verify}(R;\textsf{policy\_hash})\in\{\textsf{accept},\textsf{reject}\}$ be an epoch-defined predicate computable from verified bytes and pinned constants.
+It \MUST{} be deterministic and \MUSTNOT{} depend on unpinned external state.
+A minimal \emph{mechanical} design is:
+\[
+\mathsf{Verify}(R)=\textsf{accept}\iff R.\textsf{verdict}=\textsf{"accept"}\ \wedge\ R.\textsf{closed\_evidence\_hash}\neq \textsf{null}.
+\]
+\end{definition}
+
+\begin{definition}[Semantic-adequate verification link (optional; required for ``capability'' interpretations)]
+\label{def:semantic_adequacy}
+An epoch is \term{semantic-adequate} if it pins:
+\begin{tightitemize}
+\item a benchmark/task family identifier $\mathcal{B}$ and a deterministic scoring function $\mathsf{Score}(\cdot)$,
+\item an optional pinned baseline reference (e.g., a baseline model or policy commit and baseline score) and a deterministic improvement map $\Delta\mathsf{Score}:=\mathsf{Score}-\mathsf{Score}_{\textsf{base}}$,
+\item a dependency-closed evaluation evidence schema for each candidate (e.g., dataset/model commits, run transcript, and deterministic score computation inputs),
+\item an acceptance rule expressed only in pinned thresholds and recomputable scores.
+\end{tightitemize}
+Under semantic adequacy, verifiers can recompute $\mathsf{Score}$ from a strict-complete record's evidence packet, and $\mathsf{Verify}$ \SHOULD{} accept only when the recomputed score meets the pinned acceptance rule.
+Moreover, $\mathsf{ProgWeight}(R)$ \SHOULD{} be a bounded monotone function of the recomputed score (or its pinned-baseline improvement).
+\end{definition}
+
+\begin{remark}[Bookkeeping vs.\ capability]
+The no-inflation results in Section~\ref{sec:no_inflation} hold for any mechanically checkable $\mathsf{Verify}$ and $\mathsf{ProgWeight}$, including the minimal design in Definition~\ref{def:verify_pred}.
+Interpreting $Y_t$ as ``intelligence'' or ``capability'' progress requires an explicit semantic link such as Definition~\ref{def:semantic_adequacy} (or a clearly stated alternative meaning for progress).
+\end{remark}
+
+\begin{definition}[Strict predicate (epoch-defined)]
+\label{def:strict_pred}
+Let $\mathsf{Strict}(R;\textsf{policy\_hash})\in\{\textsf{true},\textsf{false}\}$ be a pinned predicate computable from $R$. It \MUSTNOT{} depend on unpinned external state.
+\end{definition}
+
+\begin{definition}[Strict acceptance predicate]
+\label{def:strict_accept}
+Define:
+\[
+\mathsf{StrictAccept}(R):=
+\1\big[R\ \text{is strict-complete}\ \wedge\ \mathsf{Verify}(R)=\textsf{accept}\ \wedge\ \mathsf{Strict}(R)=\textsf{true}\big].
+\]
+\end{definition}
+
+\subsection{Strict-only progress credit}
+
+\begin{definition}[Epoch-defined progress weight]
+\label{def:prog_weight}
+The epoch defines a bounded deterministic function $\mathsf{ProgWeight}(R;\textsf{policy\_hash})\in\N$ computable from a strict-complete candidate record $R$ using only verified bytes and pinned constants. A minimal default is a constant $\mathsf{ProgWeight}\equiv p_{\min}$.
+\end{definition}
+
+\begin{definition}[Strict-only progress credit]
+\label{def:proginc}
+Fix an observation surface $\mathcal{O}$ and a window instance $w$.
+For $\textsf{ev\_commit}\in\mathcal{A}(w)$, let $R:=\mathsf{Rec}(\mathcal{O};w,\textsf{ev\_commit})$ when defined and treat undefined $R$ as yielding zero strict acceptance (Definition~\ref{def:cand_record}).
+
+Define per-candidate progress increment:
+\[
+\mathsf{ProgInc}(\textsf{ev\_commit},w;\mathcal{O}):=
+\mathsf{ProgWeight}(R)\cdot \mathsf{StrictAccept}(R).
+\]
+Define window strict progress:
+\[
+\Delta Y(w;\mathcal{O}) \ :=\ \sum_{\textsf{ev\_commit}\in \mathcal{A}(w)} \mathsf{ProgInc}(\textsf{ev\_commit},w;\mathcal{O})\ \in\ \N,
+\]
+with the convention that if $w$ is \textbf{NONSTRICT} in $\mathcal{O}$ then $\Delta Y(w;\mathcal{O}):=0$ (Definition~\ref{def:grade}).
+When $\mathcal{O}$ is clear from context, we write $\Delta Y(w)$ for $\Delta Y(w;\mathcal{O})$.
+\end{definition}
+
+\begin{definition}[Cumulative committed progress]
+For windows $(w_t)_{t\ge 1}$ define:
+\[
+Y_0 := \text{cumulative progress before } w_1,\qquad
+Y_t := Y_{t-1} + \Delta Y(w_t).
+\]
+\end{definition}
+
+\subsection{No progress inflation under adversarial missingness}
+\label{sec:no_inflation}
+
+The key danger for ``progress'' metrics is Goodhart-style inflation through \emph{observation dependence}:
+if strict derivation used the absence of counterevidence (e.g., ``no competing receipt exists''), then an adversary could inflate progress by hiding observations.
+The definitions here avoid this by (i) close-pinning a window instance $w$ with an explicit cutoff descriptor (Definition~\ref{def:window_instance}) and (ii) selecting all transcript-critical receipts only through index-unique selection at the cutoff head (Definition~\ref{def:surface_unique}).
+
+\begin{lemma}[Strict grade and roster are monotone under weakening]
+\label{lem:grade_roster_mono}
+Fix a window instance $w$ and two observation surfaces $\mathcal{O}'\preceq\mathcal{O}$ (Definition~\ref{def:weakening}).
+If $w$ is \textbf{STRICT} in $\mathcal{O}'$, then $w$ is \textbf{STRICT} in $\mathcal{O}$ and the derived attempted roster is identical:
+\[
+\mathcal{A}_{\mathcal{O}'}(w)=\mathcal{A}_{\mathcal{O}}(w).
+\]
+\end{lemma}
+
+\begin{proof}
+If $w$ is \textbf{STRICT} in $\mathcal{O}'$, then the close-pinned cutoff is certified in $\mathcal{O}'$ (Definition~\ref{def:cutoff}), hence the required close receipt and finality certificate exist and verify, and $i_{\textsf{end}}$ is derived from the certified cutoff head ($i_{\textsf{end}}=\textsf{tree\_size}-1$).
+Under weakening, all verified artifacts in $\mathcal{O}'$ also exist with identical bytes in $\mathcal{O}$, so the same close certification succeeds in $\mathcal{O}$.
+
+The roster $\mathcal{A}(w)$ and the admission count $n_{\textsf{adm}}(w)$ are defined only via cutoff-bounded inclusion proofs and index-root membership at the fixed cutoff head (Definitions~\ref{def:adm_count_at_cutoff} and \ref{def:attempted_roster}).
+Both constructions use only the presence of specific proofs and the \textsf{UNIQUE}/\textsf{COUNT} outcomes committed by the index root at $h_{\textsf{end}}$; they do not rely on the absence of competing receipts.
+Therefore the same proofs verify in $\mathcal{O}$ and yield the same $\mathcal{A}(w)$.
+\end{proof}
+
+\begin{lemma}[Strict completeness is monotone under weakening]
+\label{lem:complete_mono}
+Fix a window instance $w$ that is \textbf{STRICT} in $\mathcal{O}'$ and $\mathcal{O}$ with $\mathcal{O}'\preceq\mathcal{O}$.
+For any $\textsf{ev\_commit}\in\mathcal{A}(w)$, if $\textsf{ev\_commit}$ is strict-complete in $\mathcal{O}'$ (Definition~\ref{def:complete_strict}), then it is strict-complete in $\mathcal{O}$.
+\end{lemma}
+
+\begin{proof}
+Strict completeness is defined by the existence and verification of the canonical candidate record
+$R=\mathsf{Rec}(\mathcal{O};w,\textsf{ev\_commit})$ constructed solely from $\mathsf{Select}_T$ at the fixed cutoff and replay checks (Definition~\ref{def:cand_record}).
+All receipts, inclusion proofs, and index-membership proofs that witness strict completeness in $\mathcal{O}'$ are verified artifacts; hence they also exist in $\mathcal{O}$ under weakening.
+Because selection is certified by the index root at the fixed cutoff head, adding observations cannot change which receipt is selected.
+Thus the same record exists and the same checks pass in $\mathcal{O}$.
+\end{proof}
+
+\begin{theorem}[No progress inflation under weakening]
+\label{thm:no_inflation}
+Fix a window instance $w$ and two observation surfaces $\mathcal{O}'\preceq\mathcal{O}$.
+Then strict progress does not increase when observations are removed:
+\[
+\Delta Y(w;\mathcal{O}')\ \le\ \Delta Y(w;\mathcal{O}).
+\]
+\end{theorem}
+
+\begin{proof}
+If $w$ is \textbf{NONSTRICT} in $\mathcal{O}'$, then $\Delta Y(w;\mathcal{O}')=0$ by definition, so the claim holds.
+Otherwise $w$ is \textbf{STRICT} in $\mathcal{O}'$, hence \textbf{STRICT} in $\mathcal{O}$ and $\mathcal{A}(w)$ is identical in both surfaces (Lemma~\ref{lem:grade_roster_mono}).
+
+For each $\textsf{ev\_commit}\in\mathcal{A}(w)$, the canonical record $R$ used to evaluate $\mathsf{StrictAccept}(R)$ is defined by verified artifacts and deterministic replay at the fixed cutoff.
+Under weakening, if the record is strict-complete in $\mathcal{O}'$ then it is strict-complete in $\mathcal{O}$ (Lemma~\ref{lem:complete_mono}); if it is not strict-complete, $\mathsf{StrictAccept}(R)=0$ by definition.
+Since $\mathsf{ProgWeight}$ is a deterministic function of the strict-complete record (Definition~\ref{def:prog_weight}), summing over the same roster yields $\Delta Y(w;\mathcal{O}')\le \Delta Y(w;\mathcal{O})$.
+\end{proof}
+
+
+\subsection{Escrowed work under non-strictness (liveness without credit)}
+\label{sec:escrow}
+
+The protocol deliberately trades liveness for safety: when a window is \textbf{NONSTRICT}, strict credit is \emph{zero} (Definition~\ref{def:proginc}).
+In practice, environments with split views, partial dissemination, or intermittent witness availability may produce extended \textbf{NONSTRICT} streaks.
+To support \emph{continued learning} without weakening the no-inflation guarantees, deployments can add an explicit \emph{escrow} layer that records work products \emph{without counting them as progress}.
+
+\begin{definition}[Escrow ticket (non-normative; local, replay-checkable)]
+\label{def:escrow_ticket}
+An \term{escrow ticket} for a candidate is a local record that commits to the exact bytes the agent used when performing a speculative evaluation.
+A minimal form is the hash
+\begin{align*}
+\textsf{escrow\_ticket}:=\Hash\big(
+  &\LP(\DS_{\textsf{epoch}})\ \|\ \LP(\mathsf{Bytes}(\textsf{UTF8}(\texttt{"ESCROW"})))\\
+  &\|\ \LP(\mathsf{Bytes}(\textsf{HEX64}(\textsf{policy\_hash})))\\
+  &\|\ \LP(\mathsf{Bytes}(\textsf{JCS}(\{\textsf{epoch},\textsf{window\_id},\textsf{gid},\textsf{ev\_commit},\textsf{claim\_hash}\})))\\
+  &\|\ \LP(\mathsf{Bytes}(\textsf{JCS}(\textsf{local\_transcript\_root})))
+\big).
+\end{align*}
+The agent \MUST{} be able to replay its local evaluation deterministically to the committed \code{local\_transcript\_root}.
+Escrow tickets are \emph{not} used as strict evidence; they exist to cache work and to support later audits. For an optional mechanism to publish escrow tickets as non-strict transparency-log leaves, see Appendix~\ref{app:escrow_leaf}.
+\end{definition}
+
+\begin{definition}[Deferred settlement rule (normative for any escrow extension)]
+\label{def:escrow_settle}
+Any escrow mechanism that influences external decisions \MUST{} obey the following rule:
+\textbf{escrow does not change strict credit}.
+Formally, the strict progress process $Y_t$ (Definition~\ref{def:proginc}) is computed exactly as specified, ignoring escrow artifacts.
+Escrow artifacts \MAY{} be \emph{settled} only by later \textbf{STRICT} windows, in the sense that a strict-complete record $R$ may re-use cached computations from a matching escrow ticket to reduce compute, but the credited increment remains $\mathsf{ProgWeight}(R)\cdot\mathsf{StrictAccept}(R)$.
+\end{definition}
+
+\begin{remark}[Why escrow is safe]
+Escrow records are allowed precisely because they are \emph{accounting} of work, not evidence of correctness.
+They can inflate under observation manipulation, so they must not be mixed with strict progress claims.
+When used only for compute reuse and local prioritization (with explicit exposure budgets), escrow improves practical throughput while preserving the no-inflation theorem.
+\end{remark}
+\section{Observable metrics and regime diagnostics}
+\label{sec:metrics}
+
+\subsection{Diagnostic applicability gate}
+\begin{definition}[Diagnostic applicability gate]
+\label{def:diag_gate}
+A window $w$ is \term{diagnostically applicable} iff its derived transcript grade is \textbf{STRICT} (Definition~\ref{def:grade}). Otherwise, strict diagnostics are undefined (fail closed), and only conservative statements (e.g., $\Delta Y=0$) are permitted.
+\end{definition}
+
+\begin{remark}[Why strict diagnostics are gated (Goodhart/Campbell pressure)]
+When metrics become targets, systems face incentive and adversarial pressure to optimize proxies rather than the intended property (Goodhart's law; Campbell's law) \cite{Goodhart1975,Campbell1979,ManheimGarrabrant2018}. In no-meta settings, where no hidden judge can correct proxy drift, the safest default is to (i) compute strict diagnostics only on windows with mechanically checkable strict completeness, and (ii) treat undefined, missing, or under-specified inputs as fail-closed.
+\end{remark}
+
+\subsection{Core counts and charged spend (strict grade only)}
+Assume diagnostic applicability (Definition~\ref{def:diag_gate}), hence $w$ is \textbf{STRICT} (Definition~\ref{def:grade}).
+Then the cutoff-parameterized admission count $n_{\textsf{adm}}(w)$ is defined (Definition~\ref{def:adm_count_at_cutoff}) and equals the roster length $|\mathcal{A}(w)|$ by the strict-grade bijection check.
+For convenience, write $n_{\textsf{roster}}(w):=|\mathcal{A}(w)|$ (so $n_{\textsf{roster}}(w)=n_{\textsf{adm}}(w)$ under \textbf{STRICT}).
+Define:
+\[
+n_{\textsf{strict}}(w):=\sum_{\textsf{ev\_commit}\in\mathcal{A}(w)} \mathsf{StrictAccept}(R(\textsf{ev\_commit},w)).
+\]
+Let $S^{(k)}(w)\in\N$ be total charged spend. Define deterministic rational diagnostics:
+\[
+u_{\textsf{strict}}(w):=
+\begin{cases}
+\left(n_{\textsf{strict}}(w),\,n_{\textsf{adm}}(w)\right) & n_{\textsf{adm}}(w)>0,\\
+(0,1) & n_{\textsf{adm}}(w)=0,
+\end{cases}
+\quad
+\bar c_{\textsf{adm}}(w):=
+\begin{cases}
+\left(S^{(\textsf{verify})}(w),\,n_{\textsf{adm}}(w)\right) & n_{\textsf{adm}}(w)>0,\\
+(0,1) & n_{\textsf{adm}}(w)=0.
+\end{cases}
+\]
+
+\subsection{Utilization (strict grade only)}
+Let verify utilization be:
+\[
+u_v(w):=\begin{cases}
+\left(S^{(\textsf{verify})}(w),\,B^{(\textsf{verify})}(w)\right) & B^{(\textsf{verify})}(w)>0,\\
+(0,1) & B^{(\textsf{verify})}(w)=0.
+\end{cases}
+\]
+
+\subsection{Missingness and cap-fallback rate (strict grade only)}
+Define:
+\[
+\mu_{\textsf{cap}}(w):=
+\begin{cases}
+\left(\sum_{\textsf{cand}}\sum_{j\in\mathcal{J}_{\textsf{mand}}}\1[\textsf{status}_{\textsf{cand},j}=\textsf{cap\_fallback}],\ n_{\textsf{adm}}(w)\cdot |\mathcal{J}_{\textsf{mand}}|\right) & n_{\textsf{adm}}(w)>0,\\
+(0,1) & n_{\textsf{adm}}(w)=0.
+\end{cases}
+\]
+
+\subsection{Tail coefficient (epoch-fixed estimator; strict grade only)}
+\begin{definition}[Tail coefficient proxy (strict grade only; deterministic)]
+\label{def:tail_proxy}
+Fix $N_{\min}\in\N$ and deterministic p99: sort ascending and take index $\lceil 0.99 m\rceil$ (1-indexed). If $n_{\textsf{adm}}(w)<N_{\min}$, tail metrics are undefined (fail closed). Otherwise define:
+\[
+\textsf{p99}^{(k)}(w):=\widehat{\textsf{p99}}\left(\mathrm{Charged}^{(k)}_{\textsf{cand}}(w)\right),\quad
+\textsf{sum}^{(k)}(w):=\sum_{\textsf{cand}}\mathrm{Charged}^{(k)}_{\textsf{cand}}(w).
+\]
+Then a deterministic tail proxy is:
+\[
+\tau_{\textsf{tail}}^{(k)}(w):=
+\left(\textsf{p99}^{(k)}(w)\cdot n_{\textsf{adm}}(w),\ \max\{1,\textsf{sum}^{(k)}(w)\}\right),
+\quad
+\tau_{\textsf{tail}}(w):=\max_{k\in\mathcal{K}} \tau_{\textsf{tail}}^{(k)}(w),
+\]
+where the max uses Definition~\ref{def:frac_cmp}.
+\end{definition}
+
+\subsection{Regime classification (strict grade only)}
+All comparisons involving ratios \MUST{} use Definition~\ref{def:frac_cmp}.
+The epoch policy \MUST{} pin rational thresholds $\epsilon_u=(\epsilon_{\textsf{num}},\epsilon_{\textsf{den}})$, $\mu_{\max}=(\mu_{\textsf{num}},\mu_{\textsf{den}})$, and $\tau_{\max}=(\tau_{\textsf{num}},\tau_{\textsf{den}})$ with positive denominators, for strict regime classification.
+\begin{tightitemize}
+\item \textbf{Verified growth}: $\Delta Y(w)>0$ and $u_v(w)\ge_{\textsf{frac}}\epsilon_u$.
+\item \textbf{Collapse}: $u_v(w)<_{\textsf{frac}}\epsilon_u$ and $\Delta Y(w)=0$.
+\item \textbf{Missingness-limited}: $\mu_{\textsf{cap}}(w)>_{\textsf{frac}}\mu_{\max}$.
+\item \textbf{Tail-dominated}: $\tau_{\textsf{tail}}(w)>_{\textsf{frac}}\tau_{\max}$ (when defined).
+\end{tightitemize}
+
+\section{Conditional acceleration envelopes}
+\label{sec:accel}
+
+This section states envelope implications under explicit workload assumptions. All premises are evaluated only on diagnostically applicable windows (Definition~\ref{def:diag_gate}). The envelope is conditional: it is a \emph{diagnostic implication} inside the model, not a claim that external reality must comply.
+
+\subsection{Single-window envelope (verification currency)}
+
+\begin{proposition}[Single-candidate-per-window envelope (verification currency)]
+\label{prop:envelope_single}
+Fix a window $w$ with verification budget $B^{(\textsf{verify})}(w)=B$. Suppose the environment offers strictly completable candidates parameterized by size $L$ such that, for strict-accepted candidates,
+\[
+p(L)=\Theta(L^{a}),\qquad c(L)=\Theta(L^{b}),\qquad a,b>0,
+\]
+where $p(L)$ is the epoch-derived progress weight and $c(L)$ is charged verify cost. If epoch rules imply at most one such candidate can be strictly completed in the window, then:
+\[
+\Delta Y_{\max}(w)=\Theta\!\left(B^{a/b}\right).
+\]
+\end{proposition}
+\begin{proof}
+Maximize $p(L)$ subject to $c(L)\le B$. With power-law scaling, $L=\Theta(B^{1/b})$ gives $p(L)=\Theta(B^{a/b})$.
+\end{proof}
+
+\subsection{Multi-window efficiency-driven bounds (integer-testable form)}
+
+Consider an index interval of windows $w_{t_0+1},\dots,w_{t_1}$ that are diagnostically applicable (Definition~\ref{def:diag_gate}); for exposition, reindex it as $w_1,\dots,w_T$ and call it a \term{diagnostic span}.
+
+\begin{definition}[Diagnostic span (where envelope premises are invoked)]
+\label{def:diag_span}
+A \term{diagnostic span} is a finite index interval of windows on which every window is diagnostically applicable (\textbf{STRICT}) and all premises used by the envelope statements (e.g., Assumptions~\ref{ass:regime_nonempty}--\ref{ass:powerlaw}) hold with epoch-pinned parameters.
+Outside such spans, envelope conclusions are treated as undefined (fail closed) and are not used for decision-making.
+\end{definition}
+
+
+\begin{assumption}[Non-empty attempted admission]
+\label{ass:regime_nonempty}
+For all $t$, $n_{\textsf{adm}}(w_t)>0$.
+\end{assumption}
+
+\begin{assumption}[Strict fraction lower bound]
+\label{ass:qmin}
+There exists $q_{\min}\in(0,1]$ such that for all $t$:
+\[
+\frac{n_{\textsf{strict}}(w_t)}{n_{\textsf{adm}}(w_t)}\ge q_{\min}.
+\]
+(Interpreted deterministically via Definition~\ref{def:frac_cmp}.)
+\end{assumption}
+
+\begin{assumption}[Verify budget stability and utilization lower bound]
+\label{ass:util}
+There exist $B_v\in\N$ and $u_{\min}\in(0,1]$ such that for all $t$:
+\[
+B^{(\textsf{verify})}(w_t)=B_v
+\quad\text{and}\quad
+\frac{S^{(\textsf{verify})}(w_t)}{B_v}\ge u_{\min}.
+\]
+(Interpreted deterministically via Definition~\ref{def:frac_cmp}.)
+\end{assumption}
+
+\begin{assumption}[Power-law upper bound on charged cost per admitted attempt (policy-pinned testable form)]
+\label{ass:powerlaw}
+There exist constants $c_0>0$, $\beta>0$, and integer $\gamma\ge 1$ such that for all diagnostically applicable $t$:
+\[
+\bar c_{\textsf{adm}}(w_t)\le \frac{c_0}{\bigl(1+\beta\,Y_{t-1}\bigr)^{\gamma}}.
+\]
+For strict-grade diagnostics, the parameters $(c_0,\beta,\gamma)$ are not chosen by ad-hoc fitting: the epoch policy \MUST{} pin a finite candidate set (rationals for $c_0,\beta$ and integers for $\gamma$) and a deterministic selection rule. The premise is accepted only if the deterministic test protocol (Appendix~\ref{sec:powerlaw_test}) returns \texttt{PASS}; otherwise it is treated as \texttt{UNDEFINED} or \texttt{FAIL} (never silently accepted).
+\end{assumption}
+
+\begin{remark}[Pinned parameter selection should avoid vacuity]
+Assumption~\ref{ass:powerlaw} is used as a diagnostic premise, so a policy that permits trivially loose parameter choices can make it vacuously pass while conveying little information.
+An epoch policy \SHOULD{} pin a small candidate set and a deterministic selection rule that prefers informative (tight) passing bounds.
+A simple deterministic rule is: among candidates that \texttt{PASS} on the diagnostic span, choose the lexicographically strongest triple (maximize $\gamma$, then maximize $\beta$, then minimize $c_0$, with deterministic tie-breaks); if none pass, output \texttt{UNDEFINED}.
+\end{remark}
+
+\begin{remark}[Power-law premise is a bounded inequality, not a regression fit]
+The test protocol checks a policy-pinned inequality on derived averages. It does not assert a universal generative model, and it is compatible with conservative empirical practice for power-law claims \cite{ClausetShaliziNewman2009}.
+\end{remark}
+
+\begin{remark}[Pinned gas/complexity as a regime guardrail]
+The envelope arguments below are meaningful only if windows remain diagnostically applicable. If derivation becomes too expensive (gas limiter trips) or memory/size bounds are exceeded, the system deterministically exits the strict regime before any ``optimistic'' diagnostics can be computed.
+\end{remark}
+
+Define:
+\[
+\kappa := \frac{q_{\min}\,u_{\min}\,B_v}{c_0} > 0,\qquad Z_t:=1+\beta Y_t.
+\]
+
+\begin{theorem}[Conditional acceleration: exponential case]
+\label{thm:accel_exp}
+Assume Assumptions~\ref{ass:regime_nonempty}--\ref{ass:util} and Assumption~\ref{ass:powerlaw} with $\gamma=1$.
+Assume further that $\mathsf{ProgWeight}(R)\ge p_{\min}>0$ for all strict-accepted records $R$ in the diagnostic span.
+Then:
+\[
+Z_t \ \ge\ Z_0\,(1+\beta p_{\min} \kappa)^t,
+\qquad
+Y_t+\frac{1}{\beta}\ \ge\ \left(Y_0+\frac{1}{\beta}\right)(1+\beta p_{\min} \kappa)^t.
+\]
+\end{theorem}
+\begin{proof}
+For each $t\ge 1$, utilization implies $S^{(\textsf{verify})}(w_t)\ge u_{\min}B_v$.
+Hence $S^{(\textsf{verify})}(w_t)\ge u_{\min}B_v$. By definition of $\bar c_{\textsf{adm}}(w_t)=S^{(\textsf{verify})}(w_t)/n_{\textsf{adm}}(w_t)$, we have $n_{\textsf{adm}}(w_t)=S^{(\textsf{verify})}(w_t)/\bar c_{\textsf{adm}}(w_t)\ge u_{\min}B_v/\bar c_{\textsf{adm}}(w_t)$ and
+\[
+\Delta Y(w_t)\ge p_{\min}\,n_{\textsf{strict}}(w_t)\ge p_{\min}\,q_{\min}\frac{u_{\min}B_v}{\bar c_{\textsf{adm}}(w_t)}.
+\]
+Using $\gamma=1$ yields $\Delta Y(w_t)\ge p_{\min}\kappa(1+\beta Y_{t-1})=p_{\min}\kappa Z_{t-1}$, hence
+$Z_t\ge (1+\beta p_{\min}\kappa)Z_{t-1}$ and iteration yields the claim.
+\end{proof}
+
+\begin{theorem}[Conditional acceleration: superlinear case]
+\label{thm:accel_superlinear}
+Assume Assumptions~\ref{ass:regime_nonempty}--\ref{ass:util} and Assumption~\ref{ass:powerlaw} with integer $\gamma>1$.
+Assume further that $\mathsf{ProgWeight}(R)\ge p_{\min}>0$ for all strict-accepted records $R$ in the diagnostic span.
+Let $c:=\beta p_{\min} \kappa>0$. Then:
+\[
+Z_t \ \ge\ Z_{t-1} + c\,Z_{t-1}^{\gamma}.
+\]
+\end{theorem}
+\begin{proof}
+Same lower bound as above gives $\Delta Y(w_t)\ge p_{\min}\kappa Z_{t-1}^{\gamma}$, so
+$Z_t=1+\beta Y_t\ge Z_{t-1}+cZ_{t-1}^\gamma$.
+\end{proof}
+
+\begin{remark}[Envelope as a diagnostic]
+These are conditional envelopes over spans where observable premises hold. If physical limits, saturation, or bottleneck shifts intervene, at least one premise (utilization, strict fraction, stable budgets, or the power-law inequality) must fail before extrapolations become inconsistent.
+\end{remark}
+
+% -----------------------------------------------------------------------------
+\appendix
+
+\section{Power-law test protocol (deterministic, integer-only)}
+\label{sec:powerlaw_test}
+
+To test Assumption~\ref{ass:powerlaw} without floating point, encode $\beta$ and $c_0$ as rationals:
+\[
+\beta=\frac{\beta_{\textsf{num}}}{\beta_{\textsf{den}}},\qquad c_0=\frac{c_{0,\textsf{num}}}{c_{0,\textsf{den}}},
+\]
+with positive integers. Define
+\[
+Z^\star_{t-1}:=\beta_{\textsf{den}} + \beta_{\textsf{num}}\,Y_{t-1}\in\N.
+\]
+Then test by integer cross-multiplication with overflow checks (fail closed if overflow):
+\[
+\bigl(\bar c_{\textsf{adm}}(w_t)\bigr)_{\textsf{num}}\cdot c_{0,\textsf{den}}\cdot (Z^\star_{t-1})^\gamma
+\ \le\
+\bigl(\bar c_{\textsf{adm}}(w_t)\bigr)_{\textsf{den}}\cdot c_{0,\textsf{num}}\cdot (\beta_{\textsf{den}})^\gamma.
+\]
+If any required value is missing or any multiplication overflows, output \texttt{UNDEFINED} (never \texttt{PASS}).
+
+\section{Receipt hashing and canonicalization (normative)}
+Within an epoch:
+\begin{tightitemize}
+\item Normative keywords \MUST{}, \SHOULD{}, etc. follow RFC~2119 and RFC~8174 \cite{RFC2119,RFC8174}.
+\item JSON \MUST{} be canonicalized with RFC~8785 (JCS); duplicate keys \MUST{} be rejected \cite{RFC8785}.
+\item Integer-valued fields \MUST{} be decimal strings with no leading zeros (except \texttt{"0"}) and parsed fail-closed (Definition~\ref{def:parse_u64}).
+\item \texttt{B64U} is base64url without padding (RFC~4648) \cite{RFC4648}. \texttt{HEX64} is 64 lowercase hex chars encoding 32 bytes.
+\item Receipt hashes are computed as in Definition~\ref{def:rcpt_hash}; mismatch \MUST{} fail closed.
+\item Implementations \MUST{} fail closed on integer overflow/underflow for any budget/cap/charge arithmetic.
+\item Dependency pinning \MUST{} be enforced: verifiers \MUSTNOT{} substitute different registry roots than those pinned by \code{policy\_hash}.
+\item Ratio comparisons \MUST{} use deterministic cross-multiplication with overflow detection (Definition~\ref{def:frac_cmp}).
+\item Whole-window derivation \MUST{} be gas/limiter bounded (Assumption~\ref{ass:window_gas}); transcript construction \MUST{} be streaming-bounded and memory-safe (Definition~\ref{def:streaming_len}).
+\item Cap consistency \MUST{} be checkable on a finite set using policy breakpoints (Definitions~\ref{def:cap_breakpoints} and \ref{def:cap_consistency}).
+\end{tightitemize}
+
+\section{Reference schemas (illustrative; non-normative unless policy-pinned)}
+\label{sec:schemas_non_norm}
+
+This appendix is a \emph{reference mechanism sketch} (Layer~II). These JSON shapes are illustrative.
+\textbf{Important:} strict semantics in this paper do \emph{not} depend on receipt-carried cutoff bindings that would create circularity with list-root commitments (e.g., carrying \code{end\_head\_commit} or \code{end\_leaf\_index} inside a receipt that is itself included under that head).
+Instead, the cutoff head is supplied as part of the window instance $w$ (Definition~\ref{def:window_instance}) and is certified via a verified \code{FinalityCertReceipt}.
+A receipt \emph{may} carry a cutoff \emph{tree-size} value (\code{cutoff\_tree\_size}); when present and required for strict closure, it is validated only by equality to the certified head's \code{tree\_size} (Definition~\ref{def:window_close}).
+Implementations \MAY{} include additional non-normative \emph{context fields} for diagnostics, but strict verifiers \MUST{} ignore them unless their use is explicitly policy-pinned and validated (e.g., via $\mathsf{PostAttested}$).
+An epoch policy may pin exact schemas and hashing/allowlists; absent such pinning, these shapes are not normative.
+
+\subsection{BudgetReceipt / WindowCreateReceipt / WindowCloseReceipt / WindowRosterReceipt}
+
+\begin{lstlisting}[language=json,caption={BudgetReceipt (justifies budgets via an observable funding/escrow proof).}]
+{
+  "type": "budget_receipt",
+  "v": 1,
+  "policy_hash": "HEX64",
+  "epoch": "EPOCH_ID",
+  "window_id": "HEX64",
+  "budgets": { "verify":"U64STR","store":"U64STR","compute":"U64STR","io":"U64STR" },
+  "funding_ref": { "epoch_defined": "OBJECT" },
+  "funding_proof": { "epoch_defined": "OBJECT" },
+  "sig_alg": "STRING",
+  "signer_id": "STRING",
+  "sig": "B64U",
+  "hash": "HEX64"
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json,caption={WindowCreateReceipt (binds anchor and slot; budgets come from BudgetReceipt).}]
+{
+  "type": "window_create_receipt",
+  "v": 1,
+  "policy_hash": "HEX64",
+  "epoch": "EPOCH_ID",
+  "window_id": "HEX64",
+  "time_anchor": { "commit": "HEX64", "open": "HEX64", "window_ms": "U64STR" },
+  "slot_ms": "U64STR",
+  "sig_alg": "STRING",
+  "signer_id": "STRING",
+  "sig": "B64U",
+  "hash": "HEX64"
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json,caption={WindowCloseReceipt (declares closure of a window; close-pins the cutoff by \code{cutoff\_tree\_size}; cutoff head commit is supplied by $w$ and certified by FinalityCertReceipt).}]
+{
+  "type": "window_close_receipt",
+  "v": 1,
+  "policy_hash": "HEX64",
+  "epoch": "EPOCH_ID",
+  "window_id": "HEX64",
+  "cutoff_tree_size": "U64STR",
+  "transcript_root": "HEX64 OR null",
+  "sig_alg": "STRING",
+  "signer_id": "STRING",
+  "sig": "B64U",
+  "hash": "HEX64"
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json,caption={WindowRosterReceipt (enumerates attempted admissions for the window at the certified cutoff head).}]
+{
+  "type": "window_roster_receipt",
+  "v": 1,
+  "policy_hash": "HEX64",
+  "epoch": "EPOCH_ID",
+  "window_id": "HEX64",
+  "ev_commit_list": [ "HEX64", "..." ],
+  "sig_alg": "STRING",
+  "signer_id": "STRING",
+  "sig": "B64U",
+  "hash": "HEX64"
+}
+\end{lstlisting}
+
+
+\subsection{Escrow as a log leaf (minimal, non-strict)}
+\label{app:escrow_leaf}
+
+This appendix specifies an optional mechanism to publish escrow information as a transparency-log leaf for cross-agent caching and auditability.
+It is intentionally minimal and is \textbf{not} part of strict evidence: strict verifiers \MUST{} ignore these leaves for grading, strictness, and credit.
+
+\begin{lstlisting}[language=json,caption={EscrowLeafReceipt (optional; log leaf only; non-strict).}]
+{
+  "type": "escrow_leaf_receipt",
+  "v": 1,
+  "policy_hash": "HEX64",
+  "epoch": "EPOCH_ID",
+  "window_id": "HEX64",
+  "gid": "HEX64",
+  "ev_commit": "HEX64",
+  "claim_hash": "HEX64",
+  "escrow_ticket": "HEX64",
+  "local_transcript_root": "HEX64",
+  "metered": { "verify":"U64STR","store":"U64STR","compute":"U64STR","io":"U64STR" },
+  "note": "STRING OR null",
+  "sig_alg": "STRING OR null",
+  "signer_id": "STRING OR null",
+  "sig": "B64U OR null",
+  "hash": "HEX64"
+}
+\end{lstlisting}
+
+\paragraph{Minimal semantics (non-strict).}
+The default binding key is $(\textsf{epoch},\textsf{window\_id},\textsf{gid},\textsf{ev\_commit})$.
+Multiple escrow leaves for the same binding key are allowed.
+Strict derivations \MUST{} ignore any escrow leaves (even if inclusion-proved under a cutoff head), and \MUST{} compute $\mathsf{StrictAccept}$ and closure strictly from the required receipts (Sections~\ref{sec:charging}--\ref{sec:closure}).
+
+\paragraph{Operational handling (spam resistance, reuse scope, and audit interpretation).}
+Escrow leaves are an \emph{auxiliary} observable surface: they can improve caching and audit trails, but they can also be spammed, replayed, or made to ``grow with observability.''
+Accordingly, deployments \SHOULD{} treat posting permissions, minimum fees/bonds, rate limits, and \code{escrow\_ticket} reuse scope as \emph{operational profiles} that remain non-strict.
+A concrete operational profile is given in Appendix~\ref{app:escrow_ops}.
+Strict outputs are invariant to any changes confined to these non-strict leaves (Lemma~\ref{lem:escrow_invariance}), and thus cannot be inflated by escrow-leaf bloat; this is consistent with the no-inflation guarantee (Theorem~\ref{thm:no_inflation}).
+
+\subsection{FinalityCertReceipt and proofs (dual-root head)}
+
+
+\begin{lstlisting}[language=json,caption={FinalityCertReceipt (strict-grade; witness-cosigned head; consistency proof REQUIRED for strict).}]
+{
+  "type": "finality_cert_receipt",
+  "v": 1,
+  "policy_hash": "HEX64",
+  "epoch": "EPOCH_ID",
+  "log_id": "HEX64",
+  "head": {
+    "tree_size": "U64STR",
+    "list_root": "HEX64",
+    "index_root": "HEX64",
+    "witness_sigs": [ {"witness_id":"STRING","sig":"B64U"} ]
+  },
+  "head_commit": "HEX64",
+  "genesis_head_commit": "HEX64",
+  "cons_proof": "OBJECT_NONEMPTY",
+  "hash": "HEX64"
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json,caption={InclusionProof (list-root membership; leaf\_hash recomputable from receipt).}]
+{
+  "type": "inclusion_proof",
+  "v": 1,
+  "policy_hash": "HEX64",
+  "log_id": "HEX64",
+  "head_commit": "HEX64",
+  "leaf_index": "U64STR",
+  "leaf_hash": "HEX64",
+  "audit_path": [ "HEX64", "..." ]
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json,caption={IndexMembershipProof (index-root membership for uniqueness and aggregates).}]
+{
+  "type": "index_membership_proof",
+  "v": 1,
+  "policy_hash": "HEX64",
+  "log_id": "HEX64",
+  "head_commit": "HEX64",
+  "ikey": "HEX64",
+  "ival_tag": "EMPTY|UNIQUE|MULTI|COUNT",
+  "ival_hash": "HEX64 OR null",
+  "ival_u64": "U64STR OR null",
+  "path": { "epoch_defined": "OBJECT" }
+}
+\end{lstlisting}
+
+\subsection{AdmissionReceipt / StageReceipt / DecisionReceipt}
+
+\begin{lstlisting}[language=json,caption={AdmissionReceipt (strict requires inclusion proof + index-unique at cutoff + evidence\_len match).}]
+{
+  "type": "admission_receipt",
+  "v": 1,
+  "policy_hash": "HEX64",
+  "epoch": "EPOCH_ID",
+  "window_id": "HEX64",
+  "gid": "HEX64",
+  "ev_commit": "HEX64",
+  "evidence_len": "U64STR",
+  "claim_hash": "HEX64",
+  "sig_alg": "STRING",
+  "signer_id": "STRING",
+  "sig": "B64U",
+  "hash": "HEX64"
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json,caption={GIDClaimReceipt (epoch-wide uniqueness; strict requires inclusion proof + index-unique at cutoff; binds \textsf{gid} to a single window).}]
+{
+  "type": "gid_claim_receipt",
+  "v": 1,
+  "policy_hash": "HEX64",
+  "epoch": "EPOCH_ID",
+  "gid": "HEX64",
+  "window_id": "HEX64",
+  "ev_commit": "HEX64",
+  "sig_alg": "STRING",
+  "signer_id": "STRING",
+  "sig": "B64U",
+  "hash": "HEX64"
+}
+\end{lstlisting}
+
+
+\begin{lstlisting}[language=json,caption={StageReceipt (metered if replay-valid; strict requires inclusion proof + index-unique at cutoff).}]
+{
+  "type": "stage_receipt",
+  "v": 1,
+  "policy_hash": "HEX64",
+  "epoch": "EPOCH_ID",
+  "window_id": "HEX64",
+  "ev_commit": "HEX64",
+  "stage_id": "STRING",
+  "metered": {"verify":"U64STR","store":"U64STR","compute":"U64STR","io":"U64STR"},
+  "transcript_hash": "HEX64",
+  "sig_alg": "STRING",
+  "signer_id": "STRING",
+  "sig": "B64U",
+  "hash": "HEX64"
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=json,caption={DecisionReceipt (non-circular; closure hash checked against computed value).}]
+{
+  "type": "decision_receipt",
+  "v": 1,
+  "policy_hash": "HEX64",
+  "epoch": "EPOCH_ID",
+  "window_id": "HEX64",
+  "ev_commit": "HEX64",
+  "verdict": "STRING",
+  "reason_code": "STRING",
+  "decision_commit": "HEX64",
+  "closed_evidence_hash": "HEX64 OR null",
+  "sig_alg": "STRING",
+  "signer_id": "STRING",
+  "sig": "B64U",
+  "hash": "HEX64"
+}
+\end{lstlisting}
+
+
+\section{Design clarifications and cost notes}
+\label{sec:clarifications}
+
+This section is explanatory; it does not relax any \MUST{} requirements.
+
+\subsection{Fail-closed determinism under split-view (equivocation)}
+This section is explanatory; it does not relax any \MUST{} requirements.
+
+Strict derivation is defined using cutoff-scoped selection (Definition~\ref{def:surface_unique}) and cutoff-bounded verification (Definition~\ref{def:cutoff_verified}) at a close-pinned cutoff.
+Conflicts that occur \emph{within} a single append-only log view are certified as non-uniqueness at the cutoff: the verifiable index returns \textsf{MULTI}, so no conflicting receipt is cutoff-verified and strict processing fails closed.
+This makes strict decisions depend only on the existence of cutoff-certified proofs rather than on the accidental presence or absence of competing artifacts in the observation surface.
+
+Handling head equivocation (multiple quorum-certified heads that are not mutually consistent) requires additional ecosystem mechanisms such as gossip, monitoring, or cross-logging.
+When equivocation evidence is present, strict diagnostic claims are outside the scope of the guarantees and only fail-closed outputs (e.g., \textbf{NONSTRICT}) are permitted.
+
+
+\subsection{Witness workload vs. verifiable-map update proofs}
+Assumptions such as index correctness and admission-count correctness (Assumptions~\ref{ass:index_correct} and~\ref{ass:adm_count_correct})
+should not be read as requiring witnesses to re-compute an entire map or tree from scratch.
+A practical realization is to use authenticated dictionaries / verifiable maps that provide:
+(i) membership proofs, and (ii) \emph{update} proofs (local consistency of a root transition).
+In that realization, a witness verifies \emph{proofs of correct updates} rather than replaying all updates.
+
+\subsection{Window-level strictness vs. candidate-level strictness}
+The protocol is intentionally conservative: if a window becomes \textbf{NONSTRICT} (e.g., due to gas limits or non-unique close),
+then strict credit for candidates inside that window is not claimed, even if some candidates appear locally well-formed.
+This prevents a subtle form of partial-credit gaming (``salvaging winners from a broken window'') and simplifies determinism.
+If an application requires partial salvage, it should be implemented as a clearly separated extension layer with explicit additional receipts and proofs.
+
+\section{Implementation hardening checklist (deployment-facing; non-normative guidance)}
+\begin{tightitemize}
+\item \textbf{Parsing/canonicalization:} reject duplicate keys; enforce bounds; enforce integer-as-decimal-string; reject invalid UTF-8.
+\item \textbf{Byte encodings:} hash inputs \MUST{} use decoded bytes for HEX64/B64U and \textbf{U64BE} for structured integers (Definition~\ref{def:bytes}).
+\item \textbf{Dependency pinning:} enforce \code{policy\_hash} and pinned registry roots; never substitute ``newer'' registries just because visible.
+\item \textbf{Determinism:} no floating point for accept/credit; pin VM/version; deterministic ordering/tie-break; avoid locale-dependent compares.
+\item \textbf{Arithmetic safety:} bounded unsigned integers; fail closed on overflow/underflow.
+\item \textbf{Leaf hashing:} recompute \textsf{leaf\_hash} from receipt (Definition~\ref{def:leaf_hash}); do not trust externally supplied leaf hashes.
+\item \textbf{Strict head evidence:} strict use \MUST{} require a verified \code{FinalityCertReceipt} for the cutoff head (Definition~\ref{def:finality_cert}).
+\item \textbf{Uniqueness:} strict use \MUST{} require index-membership proofs returning \textsf{UNIQUE}(\textsf{receipt\_hash}) (Definition~\ref{def:index_unique}).
+\item \textbf{Cutoff bound:} strict use \MUST{} validate strict closure at $w$ (Definition~\ref{def:window_close}) using a verified \code{FinalityCertReceipt} for the cutoff head $h_{\textsf{end}}$ and index-unique selection of the close receipt at $\textsf{Cutoff}(w)=(h_{\textsf{end}},i_{\textsf{end}})$.
+\item \textbf{Aggregates:} strict use \MUST{} require admission-count proof returning \textsf{COUNT}($n_{\textsf{adm}}$) and enforce $n_{\textsf{adm}}\le N_{\max}$.
+\item \textbf{Roster sealing:} strict use \MUST{} require an index-unique roster receipt at the cutoff head $h_{\textsf{end}}$, duplicate-free list, length $=n_{\textsf{adm}}$, plus bijection check (Lemma~\ref{lem:roster_complete}).
+\item \textbf{Evidence length \& ev\_commit:} recompute from verified packet; \code{evidence\_len} and \code{ev\_commit} mismatch \MUST{} fail closed.
+\item \textbf{Replay:} recompute transcript hash and metered usage; enforce $\mathbf{gas}\cwise\mathbf{cap}$; cap fallback on failure.
+\item \textbf{Cap consistency:} enforce Definition~\ref{def:cap_consistency}; check policy breakpoints $\mathcal{B}$ and realized $L^\uparrow$ values; mark window NONSTRICT on violation.
+\item \textbf{Reason codes:} use only an epoch allowlist with deterministic triggers (Definition~\ref{def:reasons}).
+\item \textbf{Memory safety:} enforce streaming transcript counter and internal buffer bounds; fail closed mid-derivation on breach (\code{window\_memory\_safety\_fail}) (Definition~\ref{def:streaming_len}).
+\item \textbf{Gas/time safety:} enforce whole-window derivation limiter $G_{\max}$ and fail closed on overrun (\code{window\_gas\_exceeded}) (Assumption~\ref{ass:window_gas}).
+\end{tightitemize}
+
+\section{Related work and positioning}
+\label{sec:related}
+
+The building blocks used here draw on transparency logs and verifiable data structures, but the object of study differs: we focus on a verification-limited regime where candidate proposals outpace the ability to certify them under observable-only evidence and no privileged judge.
+
+\paragraph{Transparency logs, witnesses, and split-view resistance.}
+Certificate Transparency and its successors formalize append-only Merkle commitments and standardized inclusion/consistency proofs \cite{Merkle1987,RFC6962,RFC9162}. Tamper-evident logging and witness cosigning provide additional resistance to equivocation \cite{CrosbyWallach2009,SytaCoSi2016}. The broader verifiable-data-structures viewpoint generalizes logs and introduces log-backed maps used for key-indexing and client-auditable consistency \cite{EijdenbergVDS2015,CoxTlog2019}. Gossip protocols strengthen split-view detection without requiring a global auditor \cite{ChuatGossip2015,MeiklejohnGossipAudits2020}.
+
+\paragraph{Key transparency and authenticated dictionaries.}
+Key transparency systems such as CONIKS and follow-on designs emphasize verifiable key-to-value mappings and end-user-auditable consistency \cite{MelaraCONIKS2015,MalvaiParakeet2023,LenOPTIKS2024}. Authenticated dictionaries and append-only authenticated-map constructions provide additional foundations and performance trade-offs for membership and (non)membership proofs \cite{TamassiaADS2003,TomescuAAD2019}. We reuse these ideas as a reference mechanism only; the theory layer here is stated purely in terms of mechanically checkable commitments and receipts.
+
+\paragraph{Scaling laws and ``law of practice'' analogies.}
+Our envelope results deliberately avoid claims about hidden ground truth and instead express conditional implications over mechanically checkable quantities. The use of power-law-style premises echoes empirical scaling relations observed in other domains, including neural-language-model scaling studies \cite{KaplanScaling2020,HoffmannChinchilla2022} and classical skill-acquisition law-of-practice discussions and critiques \cite{NewellRosenbloom1981,HeathcotePowerLaw2000}. In this paper these are used only as pinned, testable premises (never as guarantees about the external world).
+
+\paragraph{What is new here.}
+This paper combines: (i) a strict-only progress-credit law that makes missingness and underspecification non-inflating for progress; (ii) close-pinned cutoffs with explicit leaf-index bounds; (iii) dual-root heads with witness-certified uniqueness/aggregate certificates (locally checkable via index-membership proofs); and (iv) end-to-end boundedness (proof sizes, replay costs, derived transcript sizes) enforced by a pinned policy object. The result is conservative but audit-ready: the verifier can fail closed under adversarial conditions while still producing a coherent partial order of strictly certified progress when the observation surface supports it.
+
+
+\section{Operational profiles for non-strict escrow leaves}
+\label{app:escrow_ops}
+
+This appendix isolates deployment guidance for \emph{non-strict} escrow leaves (Appendix~\ref{app:escrow_leaf}).
+The core design objective is to make escrow leaves useful for operators and cooperating agents while preventing them from becoming a backdoor for strict-credit inflation or a denial-of-service vector.
+
+\subsection{Threat model for escrow leaves (non-strict surface)}
+
+Escrow leaves are not strict evidence, so the primary risks are operational:
+\begin{tightitemize}
+\item \textbf{Spam / Sybil flooding.} If anyone can post, an adversary can publish large volumes of escrow leaves, especially under weak identity assumptions \cite{DouceurSybil2002}.
+\item \textbf{Replay and cross-context reuse.} If the same \code{escrow\_ticket} can be reused without scope restrictions, a single fee/bond can subsidize unlimited posting.
+\item \textbf{Audit confusion.} Observers may mistake non-strict escrow volume for strict progress unless the separation is explicit.
+\end{tightitemize}
+These are addressed by (i) admission controls at ingestion time, (ii) explicit reuse scopes, and (iii) a verifier interface that \emph{projects away} escrow leaves for strict computations.
+
+\subsection{Spam resistance profile (who can post, minimum fee, and rate limits)}
+
+Escrow-leaf spam resistance is a \emph{logging/ingestion} policy, not a strict-proof rule.
+A minimal operational policy surface is:
+
+\begin{lstlisting}[language=json,caption={EscrowLeafOpsProfile (illustrative; non-strict).}]
+{
+  "escrow_leaf_ops": {
+    "post_mode": "allowlist | fee | pow | open",
+    "allowed_signers": [ "SIGNER_ID", "..." ],
+    "min_fee": { "asset":"STRING", "amount":"U64STR" },
+    "rate_limit": { "window_ms":"U64STR", "max_posts":"U32" },
+    "max_leaf_bytes": "U32",
+    "dedup_scope": "binding_key | ticket_scope"
+  }
+}
+\end{lstlisting}
+
+\paragraph{Who can post.}
+\begin{tightitemize}
+\item In \code{allowlist} mode, an escrow leaf \MUST{} be signed and the \code{signer\_id} \MUST{} appear in a policy-pinned allowlist.
+\item In \code{open} mode, escrow leaves may be unsigned, but the logger \SHOULD{} enforce strict byte caps and rate limits to remain operationally viable.
+\end{tightitemize}
+
+\paragraph{Minimum fee / bond (non-strict).}
+To make spam costly under weak identities, deployments \SHOULD{} require either:
+(i) a minimum escrow bond/fee evidenced by a verifiable ticket, or
+(ii) a lightweight proof-of-work (PoW) receipt \cite{DworkNaor1992,BackHashcash2002}.
+Either mechanism can be implemented without making the escrow leaf strict evidence: the strict verifier ignores escrow leaves entirely, while the logger decides whether to store/relay them.
+
+\paragraph{Rate limiting.}
+Rate limits \SHOULD{} be expressed as a simple deterministic rule such as a token-bucket or fixed-window counter over a pinned clock (e.g., logger-assigned ingest time), parameterized by \code{window\_ms} and \code{max\_posts} \cite{RFC2697,RFC2698}.
+Rate limiting can be keyed by \code{signer\_id} (allowlist mode), by network identity (open mode), or by \code{escrow\_ticket} (fee mode).
+Because the surface is non-strict, the logger \MAY{} drop escrow leaves when limits are exceeded.
+
+\subsection{Reuse scope for \texttt{escrow\_ticket} (operational profile)}
+
+The operational question is whether equality of \code{escrow\_ticket} alone is sufficient for reuse, or whether the ticket should be treated as \emph{scoped} to a policy/epoch/window.
+We define a reuse scope parameter $\sigma$ with four common profiles:
+
+\begin{definition}[Escrow-ticket reuse scope $\sigma$]
+\label{def:escrow_scope}
+Let $e$ be an escrow leaf with fields $(\textsf{policy\_hash},\textsf{epoch},\textsf{window\_id},\textsf{escrow\_ticket})$.
+A deployment selects a scope $\sigma \in \{\sigma_T,\sigma_{TP},\sigma_{TPE},\sigma_{TPEW}\}$ and defines a \emph{reuse key}:
+\[
+\mathsf{ReuseKey}_\sigma(e)=
+\begin{cases}
+(\textsf{escrow\_ticket}) & \sigma=\sigma_T\\
+(\textsf{escrow\_ticket},\textsf{policy\_hash}) & \sigma=\sigma_{TP}\\
+(\textsf{escrow\_ticket},\textsf{policy\_hash},\textsf{epoch}) & \sigma=\sigma_{TPE}\\
+(\textsf{escrow\_ticket},\textsf{policy\_hash},\textsf{epoch},\textsf{window\_id}) & \sigma=\sigma_{TPEW}.
+\end{cases}
+\]
+Two escrow leaves are treated as ``the same ticket'' for operational reuse if their reuse keys are equal.
+\end{definition}
+
+\paragraph{Interpretation and recommended defaults.}
+\begin{tightitemize}
+\item $\sigma_T$ (ticket-only) is acceptable only when the underlying escrow system enforces one-time spend or carries cryptographically bound context (policy/epoch/window) inside the ticket itself.
+\item $\sigma_{TP}$ prevents cross-policy replay when policies change frequently.
+\item $\sigma_{TPE}$ is a conservative default for long-running deployments: it avoids a single ticket subsidizing unlimited epochs.
+\item $\sigma_{TPEW}$ is the most restrictive: it makes tickets effectively single-window.
+\end{tightitemize}
+Regardless of scope, deployments \SHOULD{} also pin a ticket expiry horizon and a maximum total accepted escrow leaves per epoch to bound worst-case bloat.
+
+\subsection{Audit clarity: observability-dependent growth and strict invariance}
+
+\paragraph{Observability-dependent growth.}
+Non-strict escrow leaves can ``grow with observability'' for mundane reasons: more observers, more relays, or more cooperating agents can publish more leaves, even without any change in strict progress.
+This is expected behavior of a non-strict auxiliary channel.
+
+\paragraph{Formal strict invariance.}
+We now state the separation property in a way an auditor can mechanically check.
+
+\begin{definition}[Strict projection of a log]
+\label{def:strict_projection}
+Let $\mathcal{L}$ be the multiset (or ordered sequence) of receipts/leaves visible under a fixed cutoff head.
+Define the \emph{strict projection} $\pi_{\textsf{strict}}(\mathcal{L})$ by deleting every receipt whose \code{type} is \code{escrow\_leaf\_receipt}.
+(Policies may extend the deleted set to other diagnostic-only types; the key requirement is that the deleted types are declared non-strict.)
+\end{definition}
+
+\begin{lemma}[Non-strict escrow invariance]
+\label{lem:escrow_invariance}
+Assume the strict verifier computes every strict output (e.g., $\mathsf{StrictAccept}$, window grades, strict charges, and any strict-progress credit) as a deterministic function of:
+(i) the pinned policy object, (ii) the window instance $w$ (including its certified cutoff head), and (iii) the strict projection $\pi_{\textsf{strict}}(\mathcal{L})$ (Definition~\ref{def:strict_projection}),
+and explicitly ignores all escrow leaves for strict computation.
+
+Then for any two observable logs $\mathcal{L}$ and $\mathcal{L}'$ satisfying
+$\pi_{\textsf{strict}}(\mathcal{L})=\pi_{\textsf{strict}}(\mathcal{L}')$,
+the strict verifier outputs are identical:
+\[
+V_{\textsf{strict}}(\mathcal{L}) = V_{\textsf{strict}}(\mathcal{L}').
+\]
+In particular, adding, removing, reordering, or duplicating escrow leaves cannot increase any strict value metric and cannot inflate strict credit.
+\end{lemma}
+
+\begin{proof}
+By assumption, $V_{\textsf{strict}}$ depends only on $(\textsf{policy},w,\pi_{\textsf{strict}}(\mathcal{L}))$.
+If $\pi_{\textsf{strict}}(\mathcal{L})=\pi_{\textsf{strict}}(\mathcal{L}')$, the inputs to $V_{\textsf{strict}}$ are equal, hence the outputs are equal.
+\end{proof}
+
+\paragraph{Shared-log vs.\ auxiliary-log deployment.}
+Lemma~\ref{lem:escrow_invariance} is about \emph{credit} and \emph{strict computation}.
+Operationally, escrow leaves can still consume bandwidth/storage and can increase the total log size used for inclusion proofs.
+Therefore, deployments \SHOULD{} either:
+(i) publish escrow leaves in an auxiliary non-strict log with its own head (recommended), or
+(ii) reserve explicit per-epoch capacity for non-strict leaves and enforce strict byte/rate caps at ingestion.
+Either way, strict credit remains protected by the strict-projection interface.
+
+\begin{thebibliography}{99}
+
+\bibitem{TakahashiAPWJ2026}
+K. Takahashi.
+\emph{Adversarial Participation Without a Judge: Fail-Closed Containment for No-Meta, Observable-Only Agents}.
+Zenodo, 2026.
+\href{https://doi.org/10.5281/zenodo.18382670}{doi:10.5281/zenodo.18382670}
+
+\bibitem{TakahashiONCAP2026}
+K. Takahashi.
+\emph{Observable-Only No-Meta Causal Autonomy Protocol (ONCAP)}.
+Zenodo, 2026.
+\href{https://doi.org/10.5281/zenodo.18371930}{doi:10.5281/zenodo.18371930}
+
+\bibitem{TakahashiContracts2026}
+K. Takahashi.
+\emph{Friction-Minimal Intersubjective Contracts for No-Meta Autonomous Agents}.
+Zenodo, 2026.
+\href{https://doi.org/10.5281/zenodo.18308030}{doi:10.5281/zenodo.18308030}
+
+\bibitem{TakahashiFloors2026}
+K. Takahashi.
+\emph{Floor-Specified No-Meta Autonomy}.
+Zenodo, 2026.
+\href{https://doi.org/10.5281/zenodo.18258262}{doi:10.5281/zenodo.18258262}
+
+\bibitem{TakahashiPOBML2026}
+K. Takahashi.
+\emph{Process-Aware Observable-Only Backcasting Meta-Layer (POB-ML)}.
+Zenodo, 2026.
+\href{https://doi.org/10.5281/zenodo.18239203}{doi:10.5281/zenodo.18239203}
+
+\bibitem{NISTFIPS1804}
+National Institute of Standards and Technology (NIST).
+\emph{FIPS PUB 180-4: Secure Hash Standard (SHS)}.
+U.S. Department of Commerce, 2015.
+
+\bibitem{RFC8785}
+S. Rundgren and M. Erlandsson.
+\emph{JSON Canonicalization Scheme (JCS)}.
+RFC 8785, 2020.
+
+\bibitem{RFC2119}
+S. Bradner.
+\emph{Key words for use in RFCs to Indicate Requirement Levels}.
+RFC 2119, 1997.
+
+\bibitem{RFC8174}
+B. Leiba.
+\emph{Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words}.
+RFC 8174, 2017.
+
+\bibitem{RFC4648}
+S. Josefsson.
+\emph{The Base16, Base32, and Base64 Data Encodings}.
+RFC 4648, 2006.
+
+\bibitem{Merkle1987}
+R. C. Merkle.
+A digital signature based on a conventional encryption function.
+In \emph{Advances in Cryptology --- CRYPTO '87}, 1987.
+
+\bibitem{RFC6962}
+B. Laurie, A. Langley, and E. Kasper.
+\emph{Certificate Transparency}.
+RFC 6962, 2013.
+
+\bibitem{RFC9162}
+B. Laurie, E. Messeri, and R. Stradling.
+\emph{Certificate Transparency Version 2.0}.
+RFC 9162, December 2021. DOI: \url{https://doi.org/10.17487/RFC9162}. URL: \url{https://www.rfc-editor.org/info/rfc9162}.
+\bibitem{CrosbyWallach2009}
+S. Crosby and D. Wallach.
+Efficient data structures for tamper-evident logging.
+In \emph{USENIX Security}, 2009.
+
+\bibitem{SytaCoSi2016}
+E. Syta et al.
+Keeping authorities ``honest or bust'' with decentralized witness cosigning.
+In \emph{IEEE Symposium on Security and Privacy}, 2016.
+
+\bibitem{TamassiaADS2003}
+R. Tamassia.
+Authenticated data structures.
+In \emph{Algorithms --- ESA 2003}, 2003.
+
+\bibitem{MelaraCONIKS2015}
+M. S. Melara et al.
+CONIKS: Bringing Key Transparency to End Users.
+In \emph{USENIX Security}, 2015.
+
+
+\bibitem{EijdenbergVDS2015}
+A. Eijdenberg, B. Laurie, and A. Cutter.
+\emph{Verifiable Data Structures}.
+White paper, 2015.
+\href{https://continusec.com/static/VerifiableDataStructures.pdf}{https://continusec.com/static/VerifiableDataStructures.pdf}
+
+\bibitem{CoxTlog2019}
+R. Cox.
+\emph{Transparent Logs for Skeptical Clients}.
+2019.
+\href{https://research.swtch.com/tlog.pdf}{https://research.swtch.com/tlog.pdf}
+
+\bibitem{ChuatGossip2015}
+L. Chuat, P. Szalachowski, A. Perrig, B. Laurie, and E. Messeri.
+Efficient gossip protocols for verifying the consistency of certificate logs.
+arXiv:1511.01514, 2015.
+\href{https://arxiv.org/abs/1511.01514}{https://arxiv.org/abs/1511.01514}
+
+\bibitem{MeiklejohnGossipAudits2020}
+S. Meiklejohn, P. Kalinnikov, C. S. Lin, M. Hutchinson, G. Belvin, M. Raykova, and A. Cutter.
+Think global, act local: Gossip and client audits in verifiable data structures.
+arXiv:2011.04551, 2020.
+\href{https://arxiv.org/abs/2011.04551}{https://arxiv.org/abs/2011.04551}
+
+\bibitem{TomescuAAD2019}
+A. Tomescu, V. Bhupatiraju, D. Papadopoulos, and C. Papamanthou.
+Transparency logs via append-only authenticated dictionaries.
+In \emph{Proceedings of the 2019 ACM SIGSAC Conference on Computer and Communications Security (CCS)}, 2019.
+\href{https://www.cs.yale.edu/homes/cpap/published/logs-ccs19.pdf}{https://www.cs.yale.edu/homes/cpap/published/logs-ccs19.pdf}
+
+\bibitem{MalvaiParakeet2023}
+H. Malvai, L. Kokoris-Kogias, A. Sonnino, E. Ghosh, E. Ozturk, K. Lewi, and S. Lawlor.
+Parakeet: Practical key transparency for end-to-end encrypted messaging.
+In \emph{Network and Distributed System Security Symposium (NDSS)}, 2023.
+\href{https://www.ndss-symposium.org/ndss-paper/parakeet-practical-key-transparency-for-end-to-end-encrypted-messaging/}{https://www.ndss-symposium.org/ndss-paper/parakeet-practical-key-transparency-for-end-to-end-encrypted-messaging/}
+
+\bibitem{LenOPTIKS2024}
+J. Len et al.
+OPTIKS: An optimized key transparency system.
+In \emph{USENIX Security Symposium}, 2024.
+\href{https://www.usenix.org/system/files/usenixsecurity24-len.pdf}{https://www.usenix.org/system/files/usenixsecurity24-len.pdf}
+
+\bibitem{KaplanScaling2020}
+J. Kaplan et al.
+Scaling laws for neural language models.
+arXiv:2001.08361, 2020.
+\href{https://arxiv.org/abs/2001.08361}{https://arxiv.org/abs/2001.08361}
+
+\bibitem{HoffmannChinchilla2022}
+J. Hoffmann et al.
+Training compute-optimal large language models.
+arXiv:2203.15556, 2022.
+\href{https://arxiv.org/abs/2203.15556}{https://arxiv.org/abs/2203.15556}
+
+\bibitem{NewellRosenbloom1981}
+A. Newell and P. S. Rosenbloom.
+Mechanisms of skill acquisition and the law of practice.
+In J. R. Anderson (ed.), \emph{Cognitive Skills and Their Acquisition}, pp.\ 1--55.
+Lawrence Erlbaum Associates, 1981.
+
+\bibitem{HeathcotePowerLaw2000}
+A. Heathcote, S. Brown, and D. J. K. Mewhort.
+The power law repealed: The case for an exponential law of practice.
+\emph{Psychonomic Bulletin \& Review}, 7(2):185--207, 2000.
+\href{https://pubmed.ncbi.nlm.nih.gov/10909131/}{https://pubmed.ncbi.nlm.nih.gov/10909131/}
+
+\bibitem{Goodhart1975}
+C. A. E. Goodhart.
+\emph{Problems of Monetary Management: The UK Experience}.
+In \emph{Papers in Monetary Economics}, Vol. 1. Reserve Bank of Australia, 1975.
+
+\bibitem{Campbell1979}
+D. T. Campbell.
+Assessing the impact of planned social change.
+\emph{Evaluation and Program Planning}, 2(1):67--90, 1979. DOI: \url{https://doi.org/10.1016/0149-7189(79)90048-X}.
+
+\bibitem{ManheimGarrabrant2018}
+D. Manheim and S. Garrabrant.
+Categorizing variants of Goodhart's Law.
+\emph{arXiv:1803.04585}, 2018. DOI: \url{https://doi.org/10.48550/arXiv.1803.04585}.
+
+\bibitem{ClausetShaliziNewman2009}
+A. Clauset, C. R. Shalizi, and M. E. J. Newman.
+Power-law distributions in empirical data.
+\emph{SIAM Review}, 51(4):661--703, 2009. DOI: \url{https://doi.org/10.1137/070710111}.
+
+\bibitem{everitt2019rewardtampering}
+T.~Everitt, V.~Kr{\aa}kovna, L.~Orseau, M.~Hutter, and S.~Legg,
+\newblock ``Reward Tampering Problems and Solutions in Reinforcement Learning: A Causal Influence Diagram Perspective,''
+\newblock \emph{arXiv preprint} arXiv:1908.04734, 2019.
+\newblock \url{https://arxiv.org/abs/1908.04734}.
+
+\bibitem{amodei2016concrete}
+D.~Amodei, C.~Olah, J.~Steinhardt, P.~Christiano, J.~Schulman, and D.~Man{\'e},
+\newblock ``Concrete Problems in AI Safety,''
+\newblock \emph{arXiv preprint} arXiv:1606.06565, 2016.
+\newblock \url{https://arxiv.org/abs/1606.06565}.
+
+\bibitem{irving2018debate}
+G.~Irving, P.~Christiano, and D.~Amodei,
+\newblock ``AI Safety via Debate,''
+\newblock \emph{arXiv preprint} arXiv:1805.00899, 2018.
+\newblock \url{https://arxiv.org/abs/1805.00899}.
+
+\bibitem{krakovna2020specgaming}
+V.~Kr{\aa}kovna, G.~Irving, J.~Clark, L.~Askell, and P.~Christiano,
+\newblock ``Specification gaming: the flip side of AI ingenuity,''
+\newblock DeepMind Blog, 2020.
+\newblock \url{https://deepmind.google/discover/blog/specification-gaming-the-flip-side-of-ai-ingenuity/}.
+
+
+
+\bibitem{DouceurSybil2002}
+J. R. Douceur.
+The Sybil attack.
+In \emph{Peer-to-Peer Systems (IPTPS)}, 2002.
+
+\bibitem{DworkNaor1992}
+C. Dwork and M. Naor.
+Pricing via processing or combatting junk mail.
+In \emph{Advances in Cryptology --- CRYPTO '92}, 1992.
+
+\bibitem{BackHashcash2002}
+A. Back.
+Hashcash --- a denial of service counter-measure.
+Technical report, 2002.
+\href{https://hashcash.org/papers/hashcash.pdf}{https://hashcash.org/papers/hashcash.pdf}
+
+\bibitem{RFC2697}
+J. Heinanen and R. Guerin.
+A Single Rate Three Color Marker.
+RFC 2697, 1999.
+
+\bibitem{RFC2698}
+J. Heinanen and R. Guerin.
+A Two Rate Three Color Marker.
+RFC 2698, 1999.
+\end{thebibliography}
+
+\end{document}
